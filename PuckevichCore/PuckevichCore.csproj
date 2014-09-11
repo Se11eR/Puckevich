@@ -74,7 +74,7 @@
   <ItemGroup>
     <Reference Include="Bass.Net, Version=2.4.10.3, Culture=neutral, PublicKeyToken=b7566c273e6ef480, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\BASS.NET\Bass24.Net_pre\v4.0\Bass.Net.dll</HintPath>
+      <HintPath>..\packages\BASS.NET\v4.0\Bass.Net.dll</HintPath>
     </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.4.6.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
