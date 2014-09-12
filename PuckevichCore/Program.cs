@@ -24,13 +24,6 @@ namespace PuckevichCore
             var s = manager.AudioList[1];
             s.Init();
             s.Play();
-            s.Pause();
-            s.Play();
-            s.Play();
-            s.Pause();
-            s.Play();
-            s.Pause();
-            s.Stop();
         }
     }
 
@@ -39,25 +32,23 @@ namespace PuckevichCore
 
         public void Initialize()
         {
-            //throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public Stream GetAudio(long audioId)
+        public AudioStorageStatus GetStatus(long audioId, out long bytesDownloaded)
         {
-            return null;
+            throw new NotImplementedException();
         }
 
-        public Stream StoreAudio(Uri song, long audioId)
+
+        IStoredAudioContainer IAudioStorage.StoreAudio(long audioId)
         {
-            var client = new WebClient();
-            return client.OpenRead(song);
+            throw new NotImplementedException();
         }
 
-        public bool IsStored(long audioId)
+        IStoredAudioContainer IAudioStorage.GetAudio(long audioId)
         {
-            return false;
+            throw new NotImplementedException();
         }
-
-        
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Un4seen.Bass;
@@ -27,10 +28,16 @@ namespace PuckevichCore
         private readonly Uri __Url;
 
         private bool __IsInitialized;
-        private int __BASS_Stream;
         private VkAudioState __State = VkAudioState.Stopped;
         private bool __Restart = false;
         private readonly object __BASS_OperationsLock = new object();
+
+        private int __BASS_Stream;
+        private readonly DOWNLOADPROC __DownloadDelegate;
+        private Stream __CacheStream;
+        private IStoredAudioContainer __Container;
+        private byte[] __DownnloadHandlerByteBuffer;
+        private AudioStorageStatus __StorageStatus;
 
         internal VkAudio(IAudioStorage storage, long audioId, long userId, string title, string artist, int duration, Uri url)
         {
@@ -42,13 +49,39 @@ namespace PuckevichCore
             __Duration = duration;
             __Url = url;
 
-            if (storage.IsStored(__AudioId))
+            __DownloadDelegate = DownloadHandler;
+
+            long bytesDownloaded;
+            __StorageStatus = __Storage.GetStatus(__AudioId, out bytesDownloaded);
+        }
+
+        private void DownloadHandler(IntPtr buffer, int length, IntPtr user)
+        {
+            if (__CacheStream == null)
+                return;
+
+            if (buffer == IntPtr.Zero)
             {
-                __IsInitialized = true;
+                // finished downloading
+                return;
             }
-            else
+
+            if (__DownnloadHandlerByteBuffer == null || __DownnloadHandlerByteBuffer.Length < length)
+                __DownnloadHandlerByteBuffer = new byte[length];
+
+            Marshal.Copy(buffer, __DownnloadHandlerByteBuffer, 0, length);
+            __CacheStream.Write(__DownnloadHandlerByteBuffer, 0, length);
+        }
+
+        private void CachedStreamPutter()
+        {
+            const int BUFFER_SIZE = 10000; //10KB
+            var buffer = new byte[BUFFER_SIZE];
+
+            int lengthRead;
+            while ((lengthRead = __CacheStream.Read(buffer, 0, buffer.Length)) != 0)
             {
-                __IsInitialized = false;
+                Bass.BASS_StreamPutData(__BASS_Stream, buffer, lengthRead);
             }
         }
 
@@ -56,9 +89,41 @@ namespace PuckevichCore
         {
             if (!__IsInitialized)
             {
-                __BASS_Stream = Bass.BASS_StreamCreateURL(__Url.OriginalString, 0, BASSFlag.BASS_DEFAULT, null, IntPtr.Zero);
-                if (__BASS_Stream == 0)
-                    throw new Exception("Error creating BASS sctream. Error code: " + Bass.BASS_ErrorGetCode());
+                switch (__StorageStatus)
+                {
+                    case AudioStorageStatus.Stored:
+                        __Container = __Storage.GetAudio(__AudioId);
+
+                        __BASS_Stream = Bass.BASS_StreamCreatePush(__Container.Frequency, __Container.ChannelNumber, BASSFlag.BASS_DEFAULT, IntPtr.Zero);
+
+                        //пишем в BASS канал
+                        Task.Factory.StartNew(CachedStreamPutter);
+                        break;
+                    case AudioStorageStatus.PartiallyStored:
+
+                        throw new NotImplementedException();
+
+                        break;
+                    case AudioStorageStatus.NotStored:
+                        __Container = __Storage.StoreAudio(__AudioId);
+                        __CacheStream = __Container.CachedStream;
+
+                        __BASS_Stream = Bass.BASS_StreamCreateURL(__Url.OriginalString, 0, BASSFlag.BASS_DEFAULT, __DownloadDelegate, IntPtr.Zero);
+                        if (__BASS_Stream == 0)
+                            Error.HandleBASSError("BASS_StreamCreateURL");
+
+                        var info = new BASS_CHANNELINFO();
+                        if (!Bass.BASS_ChannelGetInfo(__BASS_Stream, info))
+                            Error.HandleBASSError("BASS_ChannelGetInfo");
+
+                        __Container.Frequency = info.freq;
+                        __Container.ChannelNumber = info.chans;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                
 
                 __IsInitialized = true;
             }
