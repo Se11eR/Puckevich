@@ -12,15 +12,23 @@ namespace PuckevichCore
     {
         private readonly VkApi __Api;
         private readonly IAudioStorage __Storage;
+        private readonly IWebDownloader __Downloader;
         private readonly List<VkAudio> __InternalList;
         private int __CacheSize;
         private readonly int __Count;
 
         private int __Current = -1;
-        internal VkAudioEnumerator(List<VkAudio> internalList, int count, VkApi api, IAudioStorage storage, int cacheSize)
+
+        internal VkAudioEnumerator(List<VkAudio> internalList,
+                                   int count,
+                                   VkApi api,
+                                   IAudioStorage storage,
+                                   IWebDownloader downloader,
+                                   int cacheSize)
         {
             __Api = api;
             __Storage = storage;
+            __Downloader = downloader;
             __CacheSize = cacheSize;
             __InternalList = internalList;
             __Count = count;
@@ -31,21 +39,18 @@ namespace PuckevichCore
             return __Api.Audio.Get(__Api.UserId.Value, null, null, count, offset);
         }
 
-        private static void AppendFromApiList(VkApi api, IAudioStorage storage, List<VkAudio> internalList, IEnumerable<Audio> vkaudio)
+        private static void AppendFromApiList(VkApi api,
+                                              IAudioStorage storage,
+                                              IWebDownloader downloader,
+                                              List<VkAudio> internalList,
+                                              IEnumerable<Audio> vkaudio)
         {
-            internalList.AddRange(
-                                  vkaudio.Select(audio =>
-                                  {
-                                      var b = new UriBuilder("http", audio.Url.Host, 80, audio.Url.AbsolutePath);
-                                      return new VkAudio(storage,
-                                                         audio.Id,
-                                                         api.UserId.Value,
-                                                         audio.Title,
-                                                         audio.Artist,
-                                                         audio.Duration,
-                                                         b.Uri);
+            internalList.AddRange(vkaudio.Select(audio =>
+            {
+                var b = new UriBuilder("http", audio.Url.Host, 80, audio.Url.AbsolutePath);
+                return new VkAudio(storage, downloader, audio.Id, api.UserId.Value, audio.Title, audio.Artist, audio.Duration, b.Uri);
 
-                                  }));
+            }));
         }
 
         public int CacheSize
@@ -90,7 +95,7 @@ namespace PuckevichCore
 
             if (__Current >= __InternalList.Count)
             {
-                AppendFromApiList(__Api, __Storage, __InternalList, GetAudiosFromApi(__Current, CacheSize));
+                AppendFromApiList(__Api, __Storage, __Downloader, __InternalList, GetAudiosFromApi(__Current, CacheSize));
             }
 
             return true;

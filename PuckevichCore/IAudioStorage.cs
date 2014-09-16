@@ -14,7 +14,7 @@ namespace PuckevichCore
         NotStored
     }
 
-    public interface IAudioStorage
+    public interface IAudioStorage : IDisposable
     {
         void Initialize();
 
@@ -41,6 +41,13 @@ namespace PuckevichCore
         /// <param name="audioId">Vk audio id</param>
         /// <param name="bytesDownloaded">Если файл частично выкачан, это количество выкачанных байт, иначе - 0</param>
         /// <returns></returns>
-        AudioStorageStatus GetStatus(long audioId, out long bytesDownloaded);
+        AudioStorageStatus GetStatus(long audioId);
+
+        /// <summary>
+        /// Проставляет статус в хранилище для аудио-файла.
+        /// </summary>
+        /// <param name="audioId"></param>
+        /// <param name="bytesDownloaded"></param>
+        void SetStatus(long audioId, AudioStorageStatus status);
     }
 }

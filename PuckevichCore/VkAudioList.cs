@@ -8,7 +8,7 @@ using VkNet;
 
 namespace PuckevichCore
 {
-    public class VkAudioList : IReadOnlyList<IManagedPlayable>
+    public class VkAudioList : IReadOnlyList<IAudio>
     {
         private readonly VkApi __Api;
         public const int MIN_CACHED_AUDIOS = 20;
@@ -17,11 +17,11 @@ namespace PuckevichCore
 
         private readonly VkAudioEnumerator __Enumerator;
 
-        public VkAudioList(VkApi api, IAudioStorage storage)
+        public VkAudioList(VkApi api, IAudioStorage storage, IWebDownloader downloader)
         {
             __Api = api;
             SetCountFromApi();
-            __Enumerator = new VkAudioEnumerator(__InternaList, __VkAudioCount, __Api, storage, MIN_CACHED_AUDIOS);
+            __Enumerator = new VkAudioEnumerator(__InternaList, __VkAudioCount, __Api, storage, downloader, MIN_CACHED_AUDIOS);
         }
 
         private void SetCountFromApi()
@@ -29,7 +29,7 @@ namespace PuckevichCore
             __VkAudioCount = __Api.Audio.GetCount(__Api.UserId.Value);
         }
 
-        public IEnumerator<IManagedPlayable> GetEnumerator()
+        public IEnumerator<IAudio> GetEnumerator()
         {
             return __Enumerator;
         }
@@ -44,7 +44,7 @@ namespace PuckevichCore
             get { return __VkAudioCount; }
         }
 
-        public IManagedPlayable this[int index]
+        public IAudio this[int index]
         {
             get
             {

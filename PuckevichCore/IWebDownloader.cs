@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace PuckevichCore
 {
-    public interface IStoredAudioContainer
+    public interface IWebDownloader
     {
-        Stream CachedStream { get; }
+        Stream GetUrlStream(Uri url, out long streamLength);
     }
 }

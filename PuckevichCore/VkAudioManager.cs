@@ -17,12 +17,12 @@ namespace PuckevichCore
         private readonly VkApi __Api;
         private readonly VkAudioList __List;
 
-        public VkAudioManager(string email, string password, IAudioStorage storage)
+        public VkAudioManager(string email, string password, IAudioStorage storage, IWebDownloader downloader)
         {
             __Storage = storage;
             __Api = new VkApi();
             __Api.Authorize(APP_ID, email, password, Settings.Audio);
-            __List = new VkAudioList(__Api, storage);
+            __List = new VkAudioList(__Api, storage, downloader);
 
             if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
             {

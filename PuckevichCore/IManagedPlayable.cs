@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PuckevichCore
 {
-    public interface IAudio
+    public interface IAudio: IManagedPlayable
     {
         long SongId { get; }
 
@@ -18,15 +18,14 @@ namespace PuckevichCore
         string Artist { get; }
 
         int Duration { get; }
-
     }
 
-    public delegate void AudioPlaybackFinishedHandler(IManagedPlayable audio);
+    public delegate void AudioStoppedEvent(IManagedPlayable audio);
 
-    public interface IManagedPlayable : IAudio, IDisposable
+    public delegate void AudioStalledEvent(IManagedPlayable audio);
+
+    public interface IManagedPlayable: IDisposable
     {
-
-        void Init();
 
         void Play();
 
@@ -34,8 +33,14 @@ namespace PuckevichCore
 
         void Stop();
 
-        int PercentagePlayed { get; }
+        double PercentagePlayed { get; }
 
-        event AudioPlaybackFinishedHandler AudioPlaybackFinished;
+        int SecondsPlayed { get; }
+
+        double PercentageDownloaded { get; }
+
+        event AudioStoppedEvent AudioStopped;
+
+        event AudioStalledEvent AudioStalled;
     }
 }
