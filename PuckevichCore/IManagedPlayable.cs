@@ -7,6 +7,15 @@ using System.Threading.Tasks;
 
 namespace PuckevichCore
 {
+    public enum PlayingState
+    {
+        NotInit,
+        Stopped,
+        Paused,
+        Playing
+    }
+
+
     public interface IAudio: IManagedPlayable
     {
         long SongId { get; }
@@ -40,6 +49,8 @@ namespace PuckevichCore
         double PercentageDownloaded { get; }
 
         event AudioStoppedEvent AudioStopped;
+
+        PlayingState State { get; }
 
         event AudioStalledEvent AudioStalled;
     }

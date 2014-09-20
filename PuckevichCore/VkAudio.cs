@@ -44,7 +44,7 @@ namespace PuckevichCore
 
         private void CheckInit()
         {
-            if (!__IsInitialized || __Playable.PlayingState == PlayingState.Stopped)
+            if (!__IsInitialized || __Playable.State == PlayingState.Stopped)
             {
                 __Playable.Init();
                 __IsInitialized = true;
@@ -82,7 +82,7 @@ namespace PuckevichCore
 
             lock (__PlayableLock)
             {
-                if (__Playable.PlayingState != PlayingState.Playing)
+                if (__Playable.State != PlayingState.Playing)
                 {
                     __Playable.Play();
                 }
@@ -97,7 +97,7 @@ namespace PuckevichCore
 
             lock (__PlayableLock)
             {
-                if (__Playable.PlayingState == PlayingState.Playing)
+                if (__Playable.State == PlayingState.Playing)
                 {
                     __Playable.Pause();
                 }
@@ -110,7 +110,7 @@ namespace PuckevichCore
 
             lock (__PlayableLock)
             {
-                if (__Playable.PlayingState == PlayingState.Playing)
+                if (__Playable.State == PlayingState.Playing)
                 {
                     __Playable.Stop();
                 }
@@ -148,6 +148,12 @@ namespace PuckevichCore
             {
                 return __Playable.SecondsPlayed;
             }
+        }
+
+
+        public PlayingState State
+        {
+            get { return __Playable.State; }
         }
     }
 }

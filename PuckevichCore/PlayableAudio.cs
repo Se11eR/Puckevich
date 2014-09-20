@@ -10,12 +10,6 @@ using Un4seen.Bass;
 
 namespace PuckevichCore
 {
-    internal enum PlayingState
-    {
-        Stopped,
-        Paused,
-        Playing
-    }
 
     internal class PlayableAudio : IManagedPlayable
     {
@@ -30,7 +24,7 @@ namespace PuckevichCore
         private AudioStorageStatus __StorageStatus;
         private IStoredAudioContainer __Container;
         private ProducerConsumerMemoryStream __CacheStream;
-        private PlayingState __PlayingState = PlayingState.Stopped;
+        private PlayingState __PlayingState = PlayingState.NotInit;
         private int __BassStream;
         private long __LengthInBytes;
         private double __PercentsDownloaded;
@@ -264,7 +258,7 @@ namespace PuckevichCore
             }
         }
 
-        public PlayingState PlayingState
+        public PlayingState State
         {
             get
             {
