@@ -240,9 +240,10 @@ namespace PuckevichCore
             get { return __PercentsDownloaded; }
         }
 
-        public void Dispose()
+        ~PlayableAudio()
         {
-            Stop();
+            if (__PlayingState != PlayingState.NotInit && __PlayingState != PlayingState.Stopped)
+                Stop();
             Bass.BASS_StreamFree(__BassStream);
             __WebHandle.Dispose();
             __CacheStream.Dispose();

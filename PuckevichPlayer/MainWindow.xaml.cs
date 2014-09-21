@@ -35,8 +35,8 @@ namespace PuckevichPlayer
             var web = new WedDownloader();
 
             var manager = new VkAudioManager(email, pass, storage, web);
-            var s = manager.AudioList[0];
-            s.Play();
+
+            Content = new p_Player(manager.AudioList);
         }
     }
     public class Container : IStoredAudioContainer

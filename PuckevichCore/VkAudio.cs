@@ -135,11 +135,6 @@ namespace PuckevichCore
 
         public event AudioStoppedEvent AudioStopped;
 
-        public void Dispose()
-        {
-            __Playable.Dispose();
-        }
-
         public event AudioStalledEvent AudioStalled;
 
         public int SecondsPlayed

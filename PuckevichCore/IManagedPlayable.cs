@@ -33,7 +33,7 @@ namespace PuckevichCore
 
     public delegate void AudioStalledEvent(IManagedPlayable audio);
 
-    public interface IManagedPlayable: IDisposable
+    public interface IManagedPlayable
     {
 
         void Play();
