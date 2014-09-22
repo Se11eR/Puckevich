@@ -117,14 +117,6 @@ namespace PuckevichCore
             }
         }
 
-        public double PercentagePlayed
-        {
-            get
-            {
-                return __Playable.PercentagePlayed;
-            }
-        }
-
         public double PercentageDownloaded
         {
             get

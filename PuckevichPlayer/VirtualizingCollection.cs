@@ -526,7 +526,10 @@ namespace PuckevichCore
         /// <returns></returns>
         protected IList<T> FetchPage(int pageIndex)
         {
-            return ItemsProvider.FetchRange(pageIndex*PageSize, PageSize);
+            if (pageIndex * PageSize + PageSize <= _count)
+                return ItemsProvider.FetchRange(pageIndex * PageSize, PageSize);
+
+            return ItemsProvider.FetchRange(pageIndex * PageSize, (_count - pageIndex * PageSize));
         }
 
         /// <summary>

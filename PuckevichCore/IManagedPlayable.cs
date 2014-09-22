@@ -42,8 +42,6 @@ namespace PuckevichCore
 
         void Stop();
 
-        double PercentagePlayed { get; }
-
         int SecondsPlayed { get; }
 
         double PercentageDownloaded { get; }

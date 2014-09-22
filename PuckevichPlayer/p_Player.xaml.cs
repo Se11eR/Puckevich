@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -16,6 +17,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using JetBrains.Annotations;
 using PuckevichCore;
+using Page = System.Windows.Controls.Page;
 
 namespace PuckevichPlayer
 {
@@ -24,17 +26,16 @@ namespace PuckevichPlayer
     /// </summary>
     public partial class p_Player : Page, INotifyPropertyChanged
     {
-        private IList<IAudio> __List;
+        private IList<AudioModel> __List;
 
-        public p_Player(IList<IAudio> list)
+        public p_Player(IList<AudioModel> list)
         {
-            __List = list;
             InitializeComponent();
             DataContext = this;
             AudioList = list;
         }
 
-        public IList<IAudio> AudioList
+        public IList<AudioModel> AudioList
         {
             get
             {
@@ -50,11 +51,19 @@ namespace PuckevichPlayer
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             var handler = PropertyChanged;
             if (handler != null)
                 handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void MediaButton_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var audioModel = ((Border)sender).DataContext as AudioModel;
+            if (audioModel == null)
+                return;
+            audioModel.MediaButtonClicked();
         }
     }
 }

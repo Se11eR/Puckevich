@@ -12,18 +12,14 @@ namespace PuckevichCore
 {
     public class VkAudioManager: IDisposable
     {
-        private const int PAGE_SIZE = 30;
-        private const int PAGE_TIMEOUT = 1000 * 60; //1 minute
         private const int APP_ID = 4544915;
-        private readonly VirtualizingCollection<IAudio> __List;
+        private readonly VkAudioProvider __List;
 
         public VkAudioManager(string email, string password, IAudioStorage storage, IWebDownloader downloader)
         {
             var api = new VkApi();
             api.Authorize(APP_ID, email, password, Settings.Audio);
-            __List = new AsyncVirtualizingCollection<IAudio>(new VkAudioProvider(api, new VkAudioFactory(storage, downloader)),
-                                                        PAGE_SIZE,
-                                                        PAGE_TIMEOUT);
+            __List = new VkAudioProvider(api, new VkAudioFactory(storage, downloader));
 
             if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
             {
@@ -31,7 +27,7 @@ namespace PuckevichCore
             }
         }
 
-        public IList<IAudio> AudioList
+        public IItemsProvider<IAudio> AudioProvider
         {
             get { return __List; }
         }

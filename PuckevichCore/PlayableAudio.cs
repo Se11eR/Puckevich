@@ -230,11 +230,6 @@ namespace PuckevichCore
 
         public event AudioStoppedEvent AudioStopped;
 
-        public double PercentagePlayed
-        {
-            get { return __PercentsDownloaded; }
-        }
-
         public double PercentageDownloaded
         {
             get { return __PercentsDownloaded; }
@@ -245,8 +240,10 @@ namespace PuckevichCore
             if (__PlayingState != PlayingState.NotInit && __PlayingState != PlayingState.Stopped)
                 Stop();
             Bass.BASS_StreamFree(__BassStream);
-            __WebHandle.Dispose();
-            __CacheStream.Dispose();
+            if (__WebHandle != null)
+                __WebHandle.Dispose();
+            if (__CacheStream != null)
+                __CacheStream.Dispose();
         }
 
         public event AudioStalledEvent AudioStalled;

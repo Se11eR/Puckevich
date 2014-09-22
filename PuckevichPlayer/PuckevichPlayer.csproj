@@ -42,11 +42,12 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
@@ -62,9 +63,21 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AsyncVirtualizingCollection.cs" />
+    <Compile Include="AudioModel.cs" />
+    <Compile Include="AudioModelProviderWrapper.cs" />
+    <Compile Include="Conerters\AudioNameToEllipsisConerter.cs" />
+    <Compile Include="Controls\AudioName.xaml.cs">
+      <DependentUpon>AudioName.xaml</DependentUpon>
+    </Compile>
     <Compile Include="p_Player.xaml.cs">
       <DependentUpon>p_Player.xaml</DependentUpon>
     </Compile>
+    <Compile Include="VirtualizingCollection.cs" />
+    <Page Include="Controls\AudioName.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -78,6 +91,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="p_Player.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\MainStyles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

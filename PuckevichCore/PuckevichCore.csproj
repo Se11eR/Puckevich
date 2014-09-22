@@ -101,9 +101,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataVirtualization\AsyncVirtualizingCollection.cs" />
     <Compile Include="DataVirtualization\IItemsProvider.cs" />
-    <Compile Include="DataVirtualization\VirtualizingCollection.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="IManagedPlayable.cs" />
     <Compile Include="IAudioStorage.cs" />

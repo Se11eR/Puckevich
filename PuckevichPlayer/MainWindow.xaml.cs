@@ -24,6 +24,11 @@ namespace PuckevichPlayer
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const int PAGE_SIZE = 100;
+        private const int PAGE_TIMEOUT = 1000 * 60; //1 minute
+
+        private IItemsProvider<IAudio> __AudioProvider;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -35,8 +40,11 @@ namespace PuckevichPlayer
             var web = new WedDownloader();
 
             var manager = new VkAudioManager(email, pass, storage, web);
-
-            Content = new p_Player(manager.AudioList);
+            __AudioProvider = manager.AudioProvider;
+            var virtualizingCollection = new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(__AudioProvider),
+                                                                                     PAGE_SIZE,
+                                                                                     PAGE_TIMEOUT);
+            Content = new p_Player(virtualizingCollection);
         }
     }
     public class Container : IStoredAudioContainer
