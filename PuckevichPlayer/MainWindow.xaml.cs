@@ -33,7 +33,6 @@ namespace PuckevichPlayer
         {
             InitializeComponent();
 
-            int appID = 4544915;
 
             var storage = new Storage();
             storage.Initialize();
