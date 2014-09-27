@@ -20,6 +20,7 @@ namespace PuckevichPlayer
     public class AudioModel: INotifyPropertyChanged
     {
         private readonly IAudio __InternalAudio;
+        private readonly IManagedPlayable __Playable;
         private  AudioIcon __AudioIcon;
         private int __TimePlayed;
         private double __Downloaded;
@@ -27,6 +28,7 @@ namespace PuckevichPlayer
         public AudioModel(IAudio internalAudio)
         {
             __InternalAudio = internalAudio;
+            __Playable = __InternalAudio.Playable;
         }
 
         public string Title
@@ -70,7 +72,7 @@ namespace PuckevichPlayer
         {
             get
             {
-                return new DateTime().AddSeconds(__InternalAudio.SecondsPlayed).ToString("mm:ss");
+                return new DateTime().AddSeconds(__Playable.SecondsPlayed).ToString("mm:ss");
             }
         }
 
@@ -78,28 +80,28 @@ namespace PuckevichPlayer
         {
             get
             {
-                return __InternalAudio.PercentageDownloaded;
+                return __Playable.PercentageDownloaded;
             }
         }
 
         public void MediaButtonClicked()
         {
-            switch (__InternalAudio.State)
+            switch (__Playable.State)
             {
                 case PlayingState.NotInit:
-                    __InternalAudio.Play();
+                    __Playable.Play();
                     AudioIcon = AudioIcon.Pause;
                     break;
                 case PlayingState.Stopped:
-                     __InternalAudio.Play();
+                    __Playable.Play();
                     AudioIcon = AudioIcon.Pause;
                     break;
                 case PlayingState.Paused:
-                    __InternalAudio.Play();
+                    __Playable.Play();
                     AudioIcon = AudioIcon.Pause;
                     break;
                 case PlayingState.Playing:
-                    __InternalAudio.Pause();
+                    __Playable.Pause();
                     AudioIcon = AudioIcon.Play;
                     break;
                 default:

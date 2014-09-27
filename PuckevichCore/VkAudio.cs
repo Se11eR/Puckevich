@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PuckevichCore
 {
-    public class VkAudio : IAudio
+    public class VkAudio : IAudio, IManagedPlayable
     {
         private readonly long __AudioId;
         private readonly long __UserId;
@@ -18,7 +18,7 @@ namespace PuckevichCore
         private readonly string __Artist;
         private readonly int __Duration;
 
-        private PlayableAudio __Playable;
+        private readonly PlayableAudio __InternalPlayable;
         private bool __IsInitialized;
         private readonly object __PlayableLock = new object();
 
@@ -31,27 +31,27 @@ namespace PuckevichCore
             __Artist = artist;
             __Duration = duration;
 
-            __Playable = new PlayableAudio(storage, downloader, audioId, url);
-            __Playable.AudioStopped += playable => OnAudioStopped();
+            __InternalPlayable = new PlayableAudio(this, storage, downloader, audioId, url);
+            __InternalPlayable.AudioStopped += playable => OnAudioStopped();
         }
 
         private void OnAudioStopped()
         {
             var handler = AudioStopped;
             if (handler != null)
-                handler(this);
+                handler(Playable);
         }
 
         private void CheckInit()
         {
-            if (!__IsInitialized || __Playable.State == PlayingState.Stopped)
+            if (!__IsInitialized || __InternalPlayable.State == PlayingState.Stopped)
             {
-                __Playable.Init();
+                __InternalPlayable.Init();
                 __IsInitialized = true;
             }
         }
 
-        public long SongId
+        public long AudioId
         {
             get { return __AudioId; }
         }
@@ -82,9 +82,9 @@ namespace PuckevichCore
 
             lock (__PlayableLock)
             {
-                if (__Playable.State != PlayingState.Playing)
+                if (__InternalPlayable.State != PlayingState.Playing)
                 {
-                    __Playable.Play();
+                    __InternalPlayable.Play();
                 }
             }
         }
@@ -97,9 +97,9 @@ namespace PuckevichCore
 
             lock (__PlayableLock)
             {
-                if (__Playable.State == PlayingState.Playing)
+                if (__InternalPlayable.State == PlayingState.Playing)
                 {
-                    __Playable.Pause();
+                    __InternalPlayable.Pause();
                 }
             }
         }
@@ -110,9 +110,9 @@ namespace PuckevichCore
 
             lock (__PlayableLock)
             {
-                if (__Playable.State == PlayingState.Playing)
+                if (__InternalPlayable.State == PlayingState.Playing)
                 {
-                    __Playable.Stop();
+                    __InternalPlayable.Stop();
                 }
             }
         }
@@ -121,7 +121,7 @@ namespace PuckevichCore
         {
             get
             {
-                return __Playable.PercentageDownloaded;
+                return __InternalPlayable.PercentageDownloaded;
             }
         }
 
@@ -133,14 +133,20 @@ namespace PuckevichCore
         {
             get
             {
-                return __Playable.SecondsPlayed;
+                return __InternalPlayable.SecondsPlayed;
             }
         }
 
 
         public PlayingState State
         {
-            get { return __Playable.State; }
+            get { return __InternalPlayable.State; }
+        }
+
+
+        public IManagedPlayable Playable
+        {
+            get { return this; }
         }
     }
 }

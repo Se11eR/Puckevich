@@ -21,19 +21,22 @@ namespace PuckevichCore
         /// <summary>
         /// Принимает дескриптор аудио-файла и возвращает поток для записи в него
         /// </summary>
-        /// <param name="song"></param>
-        /// <param name="audioId"></param>
-        /// <param name="audioParams"></param>
+        /// <param name="audio"></param>
         /// <returns></returns>
-        IStoredAudioContainer StoreAudio(long audioId);
+        Stream CreateCacheStream(IAudio audio);
 
         /// <summary>
         /// Возвращает поток кешированного аудиофайла
         /// </summary>
         /// <param name="audioId"></param>
-        /// <param name="audioParams"></param>
         /// <returns></returns>
-        IStoredAudioContainer GetAudio(long audioId);
+        Stream LookupCacheStream(long audioId);
+
+        /// <summary>
+        /// Удаляет кешированную аудиозапись
+        /// </summary>
+        /// <param name="auidiId"></param>
+        void RemovecachedAudio(long auidiId);
 
         /// <summary>
         /// Возвращает статус состояния в хранилище для аудио-файла. 

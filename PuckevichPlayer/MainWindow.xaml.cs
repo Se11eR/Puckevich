@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Newtonsoft.Json;
 using PuckevichCore;
 
 namespace PuckevichPlayer
@@ -27,8 +28,6 @@ namespace PuckevichPlayer
         private const int PAGE_SIZE = 100;
         private const int PAGE_TIMEOUT = 1000 * 60; //1 minute
 
-        private IItemsProvider<IAudio> __AudioProvider;
-
         public MainWindow()
         {
             InitializeComponent();
@@ -39,23 +38,18 @@ namespace PuckevichPlayer
             var web = new WedDownloader();
 
             var manager = new VkAudioManager(email, pass, storage, web);
-            __AudioProvider = manager.AudioProvider;
-            var virtualizingCollection = new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(__AudioProvider),
+            IItemsProvider<IAudio> audioProvider = manager.AudioProvider;
+            var virtualizingCollection = new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(audioProvider),
                                                                                      PAGE_SIZE,
                                                                                      PAGE_TIMEOUT);
             Content = new p_Player(virtualizingCollection);
+            Closed += (sender, args) =>
+            {
+                manager.Dispose();
+                storage.Dispose();
+            };
         }
     }
-    public class Container : IStoredAudioContainer
-    {
-        public Stream CachedStream
-        {
-            get;
-            set;
-        }
-    }
-
-
     public class WedDownloader : IWebDownloader
     {
         public Stream GetUrlStream(Uri url, out long streamLength)
@@ -68,15 +62,35 @@ namespace PuckevichPlayer
         }
     }
 
-
     public class Storage : IAudioStorage
     {
-        public readonly string AppName = "PuckevichPlayer";
-
-        private readonly Dictionary<long, Tuple<IStoredAudioContainer, AudioStorageStatus>> __Storage =
-            new Dictionary<long, Tuple<IStoredAudioContainer, AudioStorageStatus>>();
+        private const string MAP_FILE = "audios.json";
+        private const string FILE_NAME_TEMPLATE = "{0} - {1}#{2}#.mp3";
 
         private IsolatedStorageFile __IsoStorage;
+        private readonly Dictionary<long, JsonModel> __AudioDict = new Dictionary<long,JsonModel>();
+        private JsonTextWriter __Writer;
+        private JsonSerializer __Serializer;
+
+        private class JsonModel
+        {
+            public long AudioId { get; set; }
+
+            public long UserId { get; set; }
+
+            public string Title { get; set; }
+
+            public string Artist { get; set; }
+
+            public int Duration { get; set; }
+
+            public int Status { get; set; }
+        }
+
+        private void UpdateFile()
+        {
+            __Serializer.Serialize(__Writer, __AudioDict);
+        }
 
         public void Initialize()
         {
@@ -84,44 +98,91 @@ namespace PuckevichPlayer
                 IsolatedStorageFile.GetStore(IsolatedStorageScope.User | IsolatedStorageScope.Domain | IsolatedStorageScope.Assembly,
                                              null,
                                              null);
+            if (!__IsoStorage.FileExists(MAP_FILE))
+            {
+                __IsoStorage.CreateFile(MAP_FILE);
+            }
+
+            using (var file = new JsonTextReader(new StreamReader(__IsoStorage.OpenFile(MAP_FILE, FileMode.Open))))
+            {
+                __Serializer = new JsonSerializer();
+                var list = __Serializer.Deserialize<List<JsonModel>>(file);
+                if (list != null)
+                    foreach (var json in list)
+                    {
+                        __AudioDict.Add(json.AudioId, json);
+                    }
+            }
+
+            __Writer = new JsonTextWriter(new StreamWriter(__IsoStorage.OpenFile(MAP_FILE, FileMode.Open)));
         }
 
-        public IStoredAudioContainer StoreAudio(long audioId)
+        public Stream CreateCacheStream(IAudio audio)
         {
-            if (__Storage.ContainsKey(audioId))
-                throw new InvalidOperationException();
+            JsonModel model;
+            Stream s;
+            if (!__AudioDict.TryGetValue(audio.AudioId, out model))
+            {
+                model = new JsonModel()
+                {
+                    Artist = audio.Artist,
+                    AudioId = audio.AudioId,
+                    Duration = audio.Duration,
+                    Title = audio.Title,
+                    UserId = audio.UserId,
+                    Status = (int)AudioStorageStatus.PartiallyStored
+                };
 
-            var container = new Container();
-            container.CachedStream = __IsoStorage.CreateFile(audioId + ".mp3");
+                __AudioDict.Add(model.AudioId, model);
+                s = __IsoStorage.CreateFile(String.Format(FILE_NAME_TEMPLATE, model.Artist, model.Title, model.AudioId));
+                UpdateFile();
+            }
+            else
+                s = __IsoStorage.OpenFile(String.Format(FILE_NAME_TEMPLATE, model.Artist, model.Title, model.AudioId),
+                    FileMode.Open);
 
-            var tuple = new Tuple<IStoredAudioContainer, AudioStorageStatus>(container, AudioStorageStatus.PartiallyStored);
-            __Storage.Add(audioId, tuple);
-
-            return tuple.Item1;
+            return s;
         }
 
-        public IStoredAudioContainer GetAudio(long audioId)
+        public Stream LookupCacheStream(long audioId)
         {
-            return __Storage[audioId].Item1;
+            JsonModel model;
+            return !__AudioDict.TryGetValue(audioId, out model)
+                ? null
+                : __IsoStorage.OpenFile(String.Format(FILE_NAME_TEMPLATE, model.Artist, model.Title, model.AudioId),
+                    FileMode.Open);
+        }
+
+        public void RemovecachedAudio(long auidiId)
+        {
+            __AudioDict.Remove(auidiId);
+            UpdateFile();
         }
 
         public AudioStorageStatus GetStatus(long audioId)
         {
-            if (__Storage.ContainsKey(audioId))
-                return __Storage[audioId].Item2;
-
-            return AudioStorageStatus.NotStored;
+            JsonModel model;
+            if (!__AudioDict.TryGetValue(audioId, out model))
+            {
+                return AudioStorageStatus.NotStored;
+            }
+            return (AudioStorageStatus)model.Status;
         }
 
         public void SetStatus(long audioId, AudioStorageStatus status)
         {
-            if (__Storage.ContainsKey(audioId))
-                __Storage[audioId] = new Tuple<IStoredAudioContainer, AudioStorageStatus>(__Storage[audioId].Item1, status);
+            JsonModel model;
+            if (!__AudioDict.TryGetValue(audioId, out model))
+                return;
+
+            model.Status = (int)status;
+            UpdateFile();
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            __Writer.Close();
+            __IsoStorage.Dispose();
         }
     }
 }

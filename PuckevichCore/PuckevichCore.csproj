@@ -105,7 +105,6 @@
     <Compile Include="Error.cs" />
     <Compile Include="IManagedPlayable.cs" />
     <Compile Include="IAudioStorage.cs" />
-    <Compile Include="IStoredAudioContainer.cs" />
     <Compile Include="IWebDownloader.cs" />
     <Compile Include="PlayableAudio.cs" />
     <Compile Include="ProducerConsumerMemoryStream.cs" />

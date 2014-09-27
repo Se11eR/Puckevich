@@ -13,16 +13,18 @@ namespace PuckevichCore
 
     internal class PlayableAudio : IManagedPlayable
     {
+        internal static readonly List<IManagedPlayable> OpenedBassChannels = new List<IManagedPlayable>();
+
         private readonly BASS_FILEPROCS __BASSFileProcs;
         private readonly SYNCPROC __EndStreamProc;
 
         private readonly long __Id;
+        private readonly IAudio __Audio;
         private readonly IAudioStorage __Storage;
         private readonly EventWaitHandle __WebHandle = new AutoResetEvent(false);
         private readonly IWebDownloader __Downloader;
         private readonly Uri __Url;
         private AudioStorageStatus __StorageStatus;
-        private IStoredAudioContainer __Container;
         private ProducerConsumerMemoryStream __CacheStream;
         private PlayingState __PlayingState = PlayingState.NotInit;
         private int __BassStream;
@@ -31,8 +33,9 @@ namespace PuckevichCore
         private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
         private long __BytesDownloaded;
 
-        internal PlayableAudio(IAudioStorage storage, IWebDownloader downloader, long id, Uri url)
+        internal PlayableAudio(IAudio audio, IAudioStorage storage, IWebDownloader downloader, long id, Uri url)
         {
+            __Audio = audio;
             __Storage = storage;
             __Downloader = downloader;
             __Id = id;
@@ -121,8 +124,8 @@ namespace PuckevichCore
 
         private void HandleStoredFile()
         {
-            __Container = __Storage.GetAudio(__Id);
-            __CacheStream = new ProducerConsumerMemoryStream(__Container.CachedStream);
+            var stream = __Storage.LookupCacheStream(__Id);
+            __CacheStream = new ProducerConsumerMemoryStream(stream);
             __CacheStream.WriteFinished = true;
             __LengthInBytes = __CacheStream.Length;
         }
@@ -131,13 +134,13 @@ namespace PuckevichCore
         {
             if (partiallyStored)
             {
-                __Container = __Storage.GetAudio(__Id);
-                __CacheStream = new ProducerConsumerMemoryStream(__Container.CachedStream);
+                var stream = __Storage.LookupCacheStream(__Id);
+                __CacheStream = new ProducerConsumerMemoryStream(stream);
             }
             else
             {
-                __Container = __Storage.StoreAudio(__Id);
-                __CacheStream = new ProducerConsumerMemoryStream(__Container.CachedStream);
+                var stream = __Storage.CreateCacheStream(__Audio);
+                __CacheStream = new ProducerConsumerMemoryStream(stream);
             }
 
             //Качаем песню с vk
@@ -166,6 +169,8 @@ namespace PuckevichCore
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
             Bass.BASS_ChannelSetSync(__BassStream, BASSSync.BASS_SYNC_END, 0, __EndStreamProc, IntPtr.Zero);
+
+            OpenedBassChannels.Add(this);
         }
         private void OnAudioStopped()
         {
@@ -240,10 +245,12 @@ namespace PuckevichCore
             if (__PlayingState != PlayingState.NotInit && __PlayingState != PlayingState.Stopped)
                 Stop();
             Bass.BASS_StreamFree(__BassStream);
+            OpenedBassChannels.Remove(this);
+
             if (__WebHandle != null)
                 __WebHandle.Dispose();
             if (__CacheStream != null)
-                __CacheStream.Dispose();
+                __CacheStream.Close();
         }
 
         public event AudioStalledEvent AudioStalled;

@@ -16,9 +16,9 @@ namespace PuckevichCore
     }
 
 
-    public interface IAudio: IManagedPlayable
+    public interface IAudio
     {
-        long SongId { get; }
+        long AudioId { get; }
 
         long UserId { get; }
 
@@ -27,6 +27,8 @@ namespace PuckevichCore
         string Artist { get; }
 
         int Duration { get; }
+
+        IManagedPlayable Playable { get; }
     }
 
     public delegate void AudioStoppedEvent(IManagedPlayable audio);
