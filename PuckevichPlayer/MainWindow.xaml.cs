@@ -68,7 +68,7 @@ namespace PuckevichPlayer
         private const string FILE_NAME_TEMPLATE = "{0} - {1}#{2}#.mp3";
 
         private IsolatedStorageFile __IsoStorage;
-        private readonly Dictionary<long, JsonModel> __AudioDict = new Dictionary<long,JsonModel>();
+        private Dictionary<long, JsonModel> __AudioDict = new Dictionary<long,JsonModel>();
         private JsonTextWriter __Writer;
         private JsonSerializer __Serializer;
 
@@ -105,13 +105,8 @@ namespace PuckevichPlayer
 
             using (var file = new JsonTextReader(new StreamReader(__IsoStorage.OpenFile(MAP_FILE, FileMode.Open))))
             {
-                __Serializer = new JsonSerializer();
-                var list = __Serializer.Deserialize<List<JsonModel>>(file);
-                if (list != null)
-                    foreach (var json in list)
-                    {
-                        __AudioDict.Add(json.AudioId, json);
-                    }
+                __Serializer = new JsonSerializer {Formatting = Formatting.Indented};
+                __AudioDict = __Serializer.Deserialize<Dictionary<long, JsonModel>>(file);
             }
 
             __Writer = new JsonTextWriter(new StreamWriter(__IsoStorage.OpenFile(MAP_FILE, FileMode.Open)));
