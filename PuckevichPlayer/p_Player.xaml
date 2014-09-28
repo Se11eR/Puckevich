@@ -3,59 +3,13 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:conv="clr-namespace:PuckevichPlayer.Conerters"
       xmlns:cont="clr-namespace:PuckevichPlayer.Controls"
       mc:Ignorable="d" 
       d:DesignHeight="300" d:DesignWidth="300"
 	  Title="p_Player">
     <Page.Resources>
         <DataTemplate x:Key="MetroListBoxItem">
-            <Grid HorizontalAlignment="Stretch" Background="Transparent">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="40"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Border Width="40" Height="40" MouseDown="MediaButton_MouseDown">
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Setter Property="BorderThickness" Value="2"></Setter>
-                            <Setter Property="BorderBrush" Value="Transparent"></Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="BorderBrush" Value="#323232"></Setter>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <ContentControl>
-                        <ContentControl.Style>
-                            <Style TargetType="ContentControl">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding AudioIcon}" Value="Play">
-                                        <Setter Property="Template" Value="{StaticResource MediaPlay}"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding AudioIcon}" Value="Pause">
-                                        <Setter Property="Template" Value="{StaticResource MediaPause}"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding AudioIcon}" Value="Stop">
-                                        <Setter Property="Template" Value="{StaticResource MediaStop}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ContentControl.Style>
-                    </ContentControl>
-                </Border>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5">
-                    <StackPanel.Resources>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem, Mode=FindAncestor}, Path=Foreground}"/>
-                            <Setter Property="FontFamily" Value="Segoe UI Light"></Setter>
-                            <Setter Property="FontSize" Value="20"></Setter>
-                        </Style>
-                    </StackPanel.Resources>
-                    <cont:AudioName MaxNameLength="35" Title="{Binding Title}" Artist="{Binding Artist}" />
-                </StackPanel>
-            </Grid>
+            <cont:AudioEntry MouseDown="AudioEntry_OnMouseDown"/>
         </DataTemplate>
         <Style TargetType="ListBoxItem" x:Key="MetroListBoxItemStyle">
             <Setter Property="SnapsToDevicePixels" Value="True"/>
@@ -86,13 +40,13 @@
                                         Background="{TemplateBinding Background}" 
                                         Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                             <ContentPresenter ContentTemplate="{TemplateBinding ContentTemplate}" 
-                                                      Content="{TemplateBinding Content}" 
-                                                      ContentStringFormat="{TemplateBinding ContentStringFormat}" 
-                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
-                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
-                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                              Content="{TemplateBinding Content}" 
+                                              ContentStringFormat="{TemplateBinding ContentStringFormat}" 
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </Border>
-                        <ControlTemplate.Triggers>
+                        <!--<ControlTemplate.Triggers>
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>
                                     <Condition Property="IsMouseOver" Value="True"/>
@@ -122,7 +76,7 @@
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                             </Trigger>
-                        </ControlTemplate.Triggers>
+                        </ControlTemplate.Triggers>-->
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>

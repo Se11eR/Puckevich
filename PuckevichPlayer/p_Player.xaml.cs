@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using PuckevichCore;
+using PuckevichPlayer.Controls;
 using Page = System.Windows.Controls.Page;
 
 namespace PuckevichPlayer
@@ -56,12 +57,16 @@ namespace PuckevichPlayer
                 handler(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void MediaButton_MouseDown(object sender, MouseButtonEventArgs e)
+        private void AudioEntry_OnMouseDown(object sender, MouseButtonEventArgs e)
         {
-            var audioModel = ((Border)sender).DataContext as AudioModel;
+            if (!(sender is AudioEntry))
+                return;
+
+            var audioModel= (sender as AudioEntry).DataContext as AudioModel;
             if (audioModel == null)
                 return;
-            audioModel.MediaButtonClicked();
+
+            Task.Factory.StartNew(audioModel.AudioEntryClicked);
         }
     }
 }

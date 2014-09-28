@@ -98,15 +98,15 @@ namespace PuckevichPlayer
                 IsolatedStorageFile.GetStore(IsolatedStorageScope.User | IsolatedStorageScope.Domain | IsolatedStorageScope.Assembly,
                                              null,
                                              null);
-            if (!__IsoStorage.FileExists(MAP_FILE))
-            {
-                __IsoStorage.CreateFile(MAP_FILE);
-            }
 
-            using (var file = new JsonTextReader(new StreamReader(__IsoStorage.OpenFile(MAP_FILE, FileMode.Open))))
+            Stream s = !__IsoStorage.FileExists(MAP_FILE)
+                           ? __IsoStorage.CreateFile(MAP_FILE)
+                           : __IsoStorage.OpenFile(MAP_FILE, FileMode.Open);
+
+            using (var file = new JsonTextReader(new StreamReader(s)))
             {
                 __Serializer = new JsonSerializer {Formatting = Formatting.Indented};
-                __AudioDict = __Serializer.Deserialize<Dictionary<long, JsonModel>>(file);
+                __AudioDict = __Serializer.Deserialize<Dictionary<long, JsonModel>>(file) ?? new Dictionary<long, JsonModel>();
             }
 
             __Writer = new JsonTextWriter(new StreamWriter(__IsoStorage.OpenFile(MAP_FILE, FileMode.Open)));

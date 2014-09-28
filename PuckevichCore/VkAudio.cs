@@ -148,5 +148,11 @@ namespace PuckevichCore
         {
             get { return this; }
         }
+
+        public void Init()
+        {
+            __IsInitialized = true;
+            __InternalPlayable.Init();
+        }
     }
 }

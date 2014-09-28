@@ -10,18 +10,11 @@ using PuckevichCore;
 
 namespace PuckevichPlayer
 {
-    public enum AudioIcon
-    {
-        Play,
-        Pause,
-        Stop
-    }
-
     public class AudioModel: INotifyPropertyChanged
     {
         private readonly IAudio __InternalAudio;
         private readonly IManagedPlayable __Playable;
-        private  AudioIcon __AudioIcon;
+        private PlayingState __PlayingState;
         private int __TimePlayed;
         private double __Downloaded;
 
@@ -47,15 +40,15 @@ namespace PuckevichPlayer
             }
         }
 
-        public AudioIcon AudioIcon
+        public PlayingState AudioState
         {
             get
             {
-                return __AudioIcon;
+                return __PlayingState;
             }
             set
             {
-                __AudioIcon = value;
+                __PlayingState = value;
                 OnPropertyChanged();
             }
         }
@@ -84,29 +77,31 @@ namespace PuckevichPlayer
             }
         }
 
-        public void MediaButtonClicked()
+        public void AudioEntryClicked()
         {
+            if (__Playable.State == PlayingState.NotInit || __Playable.State == PlayingState.Stopped)
+            {
+                __Playable.Init();
+            }
+
             switch (__Playable.State)
             {
-                case PlayingState.NotInit:
+                case PuckevichCore.PlayingState.NotInit:
                     __Playable.Play();
-                    AudioIcon = AudioIcon.Pause;
                     break;
-                case PlayingState.Stopped:
+                case PuckevichCore.PlayingState.Stopped:
                     __Playable.Play();
-                    AudioIcon = AudioIcon.Pause;
                     break;
-                case PlayingState.Paused:
+                case PuckevichCore.PlayingState.Paused:
                     __Playable.Play();
-                    AudioIcon = AudioIcon.Pause;
                     break;
-                case PlayingState.Playing:
+                case PuckevichCore.PlayingState.Playing:
                     __Playable.Pause();
-                    AudioIcon = AudioIcon.Play;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            AudioState = __Playable.State;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

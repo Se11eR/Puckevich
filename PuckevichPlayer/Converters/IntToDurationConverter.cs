@@ -6,22 +6,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 
-namespace PuckevichPlayer.Conerters
+namespace PuckevichPlayer.Converters
 {
-    [ValueConversion(typeof(string), typeof(string))]
-    public class AudioNameToEllipsisConerter : IValueConverter
+    [ValueConversion(typeof(int), typeof(string))]
+    public class IntToDurationConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var maxLength = 30;
-            if (parameter is int)
-                maxLength = (int)parameter;
-
-            var name = (string)value;
-            if (name.Length > maxLength)
-                name = name.Substring(0, maxLength - 3) + "...";
-
-            return name;
+            var seconds = (int)value;
+            var dt = new DateTime().AddSeconds(seconds);
+            return dt.ToString("mm:ss");
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

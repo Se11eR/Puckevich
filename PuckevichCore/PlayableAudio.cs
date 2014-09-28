@@ -83,6 +83,8 @@ namespace PuckevichCore
                 {
                     blockRead = 0;
                     __WebHandle.Set();
+
+                    __StorageStatus = AudioStorageStatus.PartiallyStored;
                 }
 
                 __PercentsDownloaded = (double)__BytesDownloaded / __LengthInBytes;
@@ -92,6 +94,8 @@ namespace PuckevichCore
             }
 
             __CacheStream.WriteFinished = true;
+            __StorageStatus = AudioStorageStatus.Stored;
+            __Storage.SetStatus(__Id, __StorageStatus);
         }
 
         private int ProducerConsumerReadProc(IntPtr buffer, int length, IntPtr user)
@@ -141,13 +145,14 @@ namespace PuckevichCore
             {
                 var stream = __Storage.CreateCacheStream(__Audio);
                 __CacheStream = new ProducerConsumerMemoryStream(stream);
+                __Storage.SetStatus(__Id, __StorageStatus);
             }
 
             //Качаем песню с vk
             Task.Factory.StartNew(WebDownloader);
         }
 
-        internal void Init()
+        public void Init()
         {
             switch (__StorageStatus)
             {
@@ -182,20 +187,8 @@ namespace PuckevichCore
 
                     break;
                 case AudioStorageStatus.PartiallyStored:
-                    __CacheStream.Flush();
-                    if (__BytesDownloaded >= __LengthInBytes)
-                        __StorageStatus = AudioStorageStatus.Stored;
-
-                    break;
                 case AudioStorageStatus.NotStored:
-                    if (__BytesDownloaded > 0)
-                    {
-                        __CacheStream.Flush();
-                        __StorageStatus = __BytesDownloaded < __LengthInBytes
-                                              ? AudioStorageStatus.PartiallyStored
-                                              : AudioStorageStatus.Stored;
-                    }
-
+                    __CacheStream.Flush();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
