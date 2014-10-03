@@ -5,17 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace PuckevichCore
 {
-    internal class ProducerConsumerMemoryStream : Stream
+    internal class ProducerConsumerMemoryStream : IDisposable
     {
         private readonly MemoryStream __InnerStream;
         private long __ReadPosition;
         private long __WritePosition;
         private readonly object __Lock;
         private bool __WriteFinished;
-        private readonly Stream __InitialStream;
         private long __InitialStreamPosition;
 
         private readonly EventWaitHandle __WriteWaitHandle = new AutoResetEvent(false);
@@ -24,18 +24,6 @@ namespace PuckevichCore
         {
             __InnerStream = new MemoryStream();
             __Lock = new object();
-        }
-
-        public ProducerConsumerMemoryStream(Stream initialStream)
-            :this()
-        {
-            __InitialStream = initialStream;
-            __InitialStreamPosition = initialStream.Length;
-            var byf = new byte[initialStream.Length];
-            initialStream.Read(byf, 0, byf.Length);
-
-            if (__InitialStreamPosition > 0)
-                Write(byf, 0, byf.Length);
         }
 
         public bool WriteFinished
@@ -54,56 +42,36 @@ namespace PuckevichCore
             }
         }
 
-        #region Stream members
-
-        public override bool CanRead
+        public async Task Flush([NotNull] ICacheStream cacheStream)
         {
-            get
-            {
-                return true;
-            }
-        }
+            if (cacheStream == null) throw new ArgumentNullException("cacheStream");
 
-        public override bool CanSeek
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public override bool CanWrite
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        public override void Flush()
-        {
             lock (__Lock)
             {
                 __WriteWaitHandle.Set();
                 __InnerStream.Flush();
-
-                if (__InitialStream != null)
-                {
-                    var buf = new byte[__WritePosition - __InitialStreamPosition];
-                    __InnerStream.Position = __InitialStreamPosition;
-                    __InnerStream.Read(buf, 0, buf.Length);
-
-                    __InitialStream.Write(buf, 0, buf.Length);
-                    __InitialStreamPosition = __InitialStream.Length;
-                }
                 
                 __WritePosition = 0;
                 __ReadPosition = 0;
                 __WriteFinished = false;
             }
+
+            if (__WritePosition > cacheStream.Position)
+            {
+                var buf = new byte[__WritePosition - cacheStream.Position];
+                __InnerStream.Position = cacheStream.Position;
+
+                int read = 0;
+                while ((read = __InnerStream.Read(buf, 0, buf.Length)) < (__WritePosition - cacheStream.Position))
+                {
+                    await cacheStream.WriteAsync(buf, 0, read);
+                }
+
+                await cacheStream.FlushAsync();
+            }
         }
 
-        public override long Length
+        public long Length
         {
             get
             {
@@ -114,7 +82,7 @@ namespace PuckevichCore
             }
         }
 
-        public override int Read(byte[] buffer, int offset, int count)
+        public int Read(byte[] buffer, int offset, int count)
         {
             int red;
             lock (__Lock)
@@ -129,12 +97,12 @@ namespace PuckevichCore
             return red;
         }
 
-        public override long Seek(long offset, SeekOrigin origin)
+        public long Seek(long offset, SeekOrigin origin)
         {
             throw new NotSupportedException();
         }
 
-        public override void Write(byte[] buffer, int offset, int count)
+        public void Write(byte[] buffer, int offset, int count)
         {
             lock (__Lock)
             {
@@ -145,24 +113,14 @@ namespace PuckevichCore
             __WriteWaitHandle.Set();
         }
 
-        public override long Position
+        public long WritePosition
         {
-            get
-            {
-                throw new NotSupportedException();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get { return __WritePosition; }
         }
 
-        public override void SetLength(long value)
+        public void Dispose()
         {
-            throw new NotImplementedException();
+            __InnerStream.Close();
         }
-
-        #endregion
-
     }
 }

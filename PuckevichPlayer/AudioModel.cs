@@ -77,11 +77,11 @@ namespace PuckevichPlayer
             }
         }
 
-        public void AudioEntryClicked()
+        public async Task AudioEntryClicked()
         {
             if (__Playable.State == PlayingState.NotInit || __Playable.State == PlayingState.Stopped)
             {
-                __Playable.Init();
+                await __Playable.Init();
             }
 
             switch (__Playable.State)

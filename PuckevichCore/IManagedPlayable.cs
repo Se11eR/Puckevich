@@ -42,9 +42,9 @@ namespace PuckevichCore
 
         void Pause();
 
-        void Stop();
+        Task Stop();
 
-        void Init();
+        Task Init();
 
         int SecondsPlayed { get; }
 

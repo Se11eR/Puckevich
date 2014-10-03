@@ -103,6 +103,7 @@
   <ItemGroup>
     <Compile Include="DataVirtualization\IItemsProvider.cs" />
     <Compile Include="Error.cs" />
+    <Compile Include="ICacheStream.cs" />
     <Compile Include="IManagedPlayable.cs" />
     <Compile Include="IAudioStorage.cs" />
     <Compile Include="IWebDownloader.cs" />

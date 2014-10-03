@@ -57,7 +57,7 @@ namespace PuckevichPlayer
                 handler(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void AudioEntry_OnMouseDown(object sender, MouseButtonEventArgs e)
+        private async void AudioEntry_OnMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (!(sender is AudioEntry))
                 return;
@@ -66,7 +66,7 @@ namespace PuckevichPlayer
             if (audioModel == null)
                 return;
 
-            Task.Factory.StartNew(audioModel.AudioEntryClicked);
+            await audioModel.AudioEntryClicked();
         }
     }
 }

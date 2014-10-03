@@ -42,11 +42,11 @@ namespace PuckevichCore
                 handler(Playable);
         }
 
-        private void CheckInit()
+        private async Task CheckInit()
         {
             if (!__IsInitialized || __InternalPlayable.State == PlayingState.Stopped)
             {
-                __InternalPlayable.Init();
+                await __InternalPlayable.Init();
                 __IsInitialized = true;
             }
         }
@@ -80,12 +80,9 @@ namespace PuckevichCore
         {
             CheckInit();
 
-            lock (__PlayableLock)
+            if (__InternalPlayable.State != PlayingState.Playing)
             {
-                if (__InternalPlayable.State != PlayingState.Playing)
-                {
-                    __InternalPlayable.Play();
-                }
+                __InternalPlayable.Play();
             }
         }
 
@@ -95,25 +92,19 @@ namespace PuckevichCore
         {
             CheckInit();
 
-            lock (__PlayableLock)
+            if (__InternalPlayable.State == PlayingState.Playing)
             {
-                if (__InternalPlayable.State == PlayingState.Playing)
-                {
-                    __InternalPlayable.Pause();
-                }
+                __InternalPlayable.Pause();
             }
         }
 
-        public void Stop()
+        public async Task Stop()
         {
-            CheckInit();
+            await CheckInit();
 
-            lock (__PlayableLock)
+            if (__InternalPlayable.State == PlayingState.Playing)
             {
-                if (__InternalPlayable.State == PlayingState.Playing)
-                {
-                    __InternalPlayable.Stop();
-                }
+                await __InternalPlayable.Stop();
             }
         }
 
@@ -149,10 +140,10 @@ namespace PuckevichCore
             get { return this; }
         }
 
-        public void Init()
+        public async Task Init()
         {
             __IsInitialized = true;
-            __InternalPlayable.Init();
+            await __InternalPlayable.Init();
         }
     }
 }

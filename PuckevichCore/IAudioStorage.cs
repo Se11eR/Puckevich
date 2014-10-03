@@ -23,14 +23,14 @@ namespace PuckevichCore
         /// </summary>
         /// <param name="audio"></param>
         /// <returns></returns>
-        Stream CreateCacheStream(IAudio audio);
+        Task<ICacheStream> CreateCacheStream(IAudio audio);
 
         /// <summary>
         /// Возвращает поток кешированного аудиофайла
         /// </summary>
         /// <param name="audioId"></param>
         /// <returns></returns>
-        Stream LookupCacheStream(long audioId);
+        Task<ICacheStream> LookupCacheStream(long audioId);
 
         /// <summary>
         /// Удаляет кешированную аудиозапись
@@ -45,12 +45,5 @@ namespace PuckevichCore
         /// <param name="bytesDownloaded">Если файл частично выкачан, это количество выкачанных байт, иначе - 0</param>
         /// <returns></returns>
         AudioStorageStatus GetStatus(long audioId);
-
-        /// <summary>
-        /// Проставляет статус в хранилище для аудио-файла.
-        /// </summary>
-        /// <param name="audioId"></param>
-        /// <param name="bytesDownloaded"></param>
-        void SetStatus(long audioId, AudioStorageStatus status);
     }
 }
