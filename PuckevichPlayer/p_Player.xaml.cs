@@ -62,33 +62,11 @@ namespace PuckevichPlayer
             if (!(sender is AudioEntry))
                 return;
 
-            var audioModel= (sender as AudioEntry).DataContext as AudioModel;
+            var audioModel = (sender as AudioEntry).DataContext as AudioModel;
             if (audioModel == null)
                 return;
 
             await audioModel.AudioEntryClicked();
-        }
-
-        private async void P_Player_OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            foreach (var audioModel in __List)
-            {
-                switch (audioModel.AudioState)
-                {
-                    case PlayingState.NotInit:
-                        break;
-                    case PlayingState.Stopped:
-                        break;
-                    case PlayingState.Paused:
-                        await audioModel.Stop();
-                        break;
-                    case PlayingState.Playing:
-                        await audioModel.Stop();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
         }
     }
 }

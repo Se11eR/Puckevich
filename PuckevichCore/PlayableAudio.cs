@@ -13,6 +13,8 @@ namespace PuckevichCore
 
     internal class PlayableAudio : IManagedPlayable
     {
+        
+
         private readonly BASS_FILEPROCS __BASSFileProcs;
         private readonly SYNCPROC __EndStreamProc;
 

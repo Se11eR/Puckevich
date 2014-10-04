@@ -2,8 +2,9 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Threading;
+using PuckevichCore;
 
-namespace PuckevichCore
+namespace PuckevichPlayer.Virtualizing
 {
     /// <summary>
     /// Derived VirtualizatingCollection, performing loading asychronously.

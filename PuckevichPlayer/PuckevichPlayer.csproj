@@ -55,7 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AsyncVirtualizingCollection.cs" />
+    <Compile Include="Virtualizing\AsyncVirtualizingCollection.cs" />
     <Compile Include="AudioModel.cs" />
     <Compile Include="AudioModelProviderWrapper.cs" />
     <Compile Include="StorageImplementation\CacheStream.cs" />
@@ -69,7 +69,9 @@
       <DependentUpon>p_Player.xaml</DependentUpon>
     </Compile>
     <Compile Include="StorageImplementation\Storage.cs" />
-    <Compile Include="VirtualizingCollection.cs" />
+    <Compile Include="Virtualizing\PuckevichVirtualizingCollection.cs" />
+    <Compile Include="Virtualizing\VirtualizingCollection.cs" />
+    <Compile Include="WedDownloader.cs" />
     <Page Include="Controls\AudioEntry.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

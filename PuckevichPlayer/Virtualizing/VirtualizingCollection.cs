@@ -2,8 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using PuckevichCore;
 
-namespace PuckevichCore
+namespace PuckevichPlayer.Virtualizing
 {
     /// <summary>
     /// Specialized list implementation that provides data virtualization. The collection is divided up into pages,
@@ -58,7 +59,7 @@ namespace PuckevichCore
 
         #region ItemsProvider
 
-        private readonly IItemsProvider<T> _itemsProvider;
+        protected readonly IItemsProvider<T> _itemsProvider;
 
         /// <summary>
         /// Gets the items provider.
@@ -73,7 +74,7 @@ namespace PuckevichCore
 
         #region PageSize
 
-        private readonly int _pageSize = 100;
+        protected readonly int _pageSize = 100;
 
         /// <summary>
         /// Gets the size of the page.
@@ -88,7 +89,7 @@ namespace PuckevichCore
 
         #region PageTimeout
 
-        private readonly long _pageTimeout = 10000;
+        protected readonly long _pageTimeout = 10000;
 
         /// <summary>
         /// Gets the page timeout.
@@ -105,7 +106,7 @@ namespace PuckevichCore
 
         #region Count
 
-        private int _count = -1;
+        protected int _count = -1;
 
         /// <summary>
         /// Gets the number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1"/>.
@@ -441,8 +442,8 @@ namespace PuckevichCore
 
         #region Paging
 
-        private readonly Dictionary<int, IList<T>> _pages = new Dictionary<int, IList<T>>();
-        private readonly Dictionary<int, DateTime> _pageTouchTimes = new Dictionary<int, DateTime>();
+        protected readonly Dictionary<int, IList<T>> _pages = new Dictionary<int, IList<T>>();
+        protected readonly Dictionary<int, DateTime> _pageTouchTimes = new Dictionary<int, DateTime>();
 
         /// <summary>
         /// Cleans up any stale pages that have not been accessed in the period dictated by PageTimeout.
