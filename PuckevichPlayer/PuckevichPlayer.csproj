@@ -69,7 +69,6 @@
       <DependentUpon>p_Player.xaml</DependentUpon>
     </Compile>
     <Compile Include="StorageImplementation\Storage.cs" />
-    <Compile Include="Virtualizing\PuckevichVirtualizingCollection.cs" />
     <Compile Include="Virtualizing\VirtualizingCollection.cs" />
     <Compile Include="WedDownloader.cs" />
     <Page Include="Controls\AudioEntry.xaml">

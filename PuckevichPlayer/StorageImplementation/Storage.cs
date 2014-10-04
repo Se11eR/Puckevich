@@ -166,7 +166,7 @@ namespace PuckevichPlayer.StorageImplementation
         public void Dispose()
         {
             __Writer.Close();
-            __IsoStorage.Dispose();
+            __IsoStorage.Close();
         }
     }
 }

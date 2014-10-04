@@ -13,8 +13,6 @@ namespace PuckevichCore
 
     internal class PlayableAudio : IManagedPlayable
     {
-        
-
         private readonly BASS_FILEPROCS __BASSFileProcs;
         private readonly SYNCPROC __EndStreamProc;
 
@@ -269,6 +267,7 @@ namespace PuckevichCore
         {
             StopInternal();
             WhenStopped();
+            
         }
 
         public async Task StopAsync()
@@ -307,14 +306,21 @@ namespace PuckevichCore
             }
         }
 
-        public void Dispose()
+        ~PlayableAudio()
         {
+            if (__PlayingState != PlayingState.Stopped && __PlayingState != PlayingState.NotInit)
+            {
+                throw new ApplicationException("This PlayableAudio was not stoppped before destruction!");
+            }
+
             Bass.BASS_StreamFree(__BassStream);
 
             if (__WebHandle != null)
                 __WebHandle.Dispose();
             if (__ProducerConsumerStream != null)
                 __ProducerConsumerStream.Dispose();
+            if(__CacheStream != null)
+                __CacheStream.Dispose();
         }
         
     }

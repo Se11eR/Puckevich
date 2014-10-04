@@ -91,6 +91,7 @@ namespace PuckevichCore
             if (__InternalPlayable.State != PlayingState.Playing)
             {
                 __InternalPlayable.Play();
+                VkAudioManager.Instance.OpenedChannels.Add(__InternalPlayable);
             }
         }
 
@@ -101,6 +102,7 @@ namespace PuckevichCore
             if (__InternalPlayable.State != PlayingState.Paused && __InternalPlayable.State != PlayingState.NotInit)
             {
                 __InternalPlayable.Pause();
+                VkAudioManager.Instance.OpenedChannels.Add(__InternalPlayable);
             }
         }
 
@@ -111,6 +113,7 @@ namespace PuckevichCore
             if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
             {
                 __InternalPlayable.Stop();
+                VkAudioManager.Instance.OpenedChannels.Remove(__InternalPlayable);
             }
         }
 
@@ -121,6 +124,7 @@ namespace PuckevichCore
             if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
             {
                 await __InternalPlayable.StopAsync();
+                VkAudioManager.Instance.OpenedChannels.Remove(__InternalPlayable);
             }
         }
 
@@ -162,11 +166,6 @@ namespace PuckevichCore
         {
             await __InternalPlayable.InitAsync();
             __IsInitialized = true;
-        }
-
-        public void Dispose()
-        {
-            __InternalPlayable.Dispose();
         }
     }
 }

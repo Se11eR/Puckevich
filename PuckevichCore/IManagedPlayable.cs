@@ -9,7 +9,7 @@ namespace PuckevichCore
 {
     public delegate void PlayingStateChangedEvent(IManagedPlayable sender);
 
-    public interface IManagedPlayable : IDisposable
+    public interface IManagedPlayable
     {
 
         void Play();
