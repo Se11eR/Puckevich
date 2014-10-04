@@ -42,9 +42,9 @@ namespace PuckevichPlayer
             Content = new p_Player(virtualizingCollection);
             Closed += async (sender, args) =>
             {
+                await virtualizingCollection.StopAllAsync();
                 manager.Dispose();
                 storage.Dispose();
-                await virtualizingCollection.StopAllAsync();
             };
         }
     }

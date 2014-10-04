@@ -22,6 +22,7 @@ namespace PuckevichPlayer
         {
             __InternalAudio = internalAudio;
             __Playable = __InternalAudio.Playable;
+            __InternalAudio.Playable.PlayingStateChanged += sender => AudioState = sender.State;
         }
 
         public string Title

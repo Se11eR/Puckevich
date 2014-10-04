@@ -156,7 +156,6 @@ namespace PuckevichCore
                 {
                     blockRead = 0;
                     __WebHandle.Set();
-
                 }
 
                 __PercentsDownloaded = (double)__ProducerConsumerStream.WritePosition / __CacheStream.Length.Value;
@@ -174,6 +173,10 @@ namespace PuckevichCore
             {
                 var readbuffer = new byte[length];
                 var todo = length;
+
+                while (__ProducerConsumerStream == null)
+                    Thread.Sleep(1);
+
                 if (!__ProducerConsumerStream.WriteFinished)
                     __WebHandle.WaitOne();
 
