@@ -8,12 +8,14 @@ namespace PuckevichPlayer.StorageImplementation
     internal class CacheStream : ICacheStream
     {
         private readonly Stream __Stream;
-        private readonly Task<Task> __UpdateFileTask;
+        private readonly Task<Task> __UpdateFileTaskAsync;
+        private readonly Action __UpdateFileTask;
         private long? __FileLength;
 
-        public CacheStream(Stream stream, Task<Task> updateFileTask)
+        public CacheStream(Stream stream, Task<Task> updateFileTaskAsync, Action updateFileTask)
         {
             __Stream = stream;
+            __UpdateFileTaskAsync = updateFileTaskAsync;
             __UpdateFileTask = updateFileTask;
             __FileLength = __Stream.Length;
         }
@@ -66,11 +68,18 @@ namespace PuckevichPlayer.StorageImplementation
             }
         }
 
+        public void Flush()
+        {
+            __Stream.Flush();
+            Length = __Stream.Length;
+            __UpdateFileTask();
+        }
+
         public async Task FlushAsync()
         {
             await __Stream.FlushAsync();
             Length = __Stream.Length;
-            await __UpdateFileTask;
+            await __UpdateFileTaskAsync;
         }
 
         public void Dispose()

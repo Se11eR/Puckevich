@@ -43,7 +43,7 @@ namespace PuckevichCore
                                                  (long offset, IntPtr user) => false);
 
             __EndStreamProc = (int handle, int channel, int data, IntPtr user) =>
-            { var _ = WhenStopped(); };
+            { var _ = WhenStoppedAsync(); };
         }
 
         private PlayingState PlayingState
@@ -66,9 +66,9 @@ namespace PuckevichCore
             }
         }
 
-        private async Task WhenStopped()
+        private async Task WhenStoppedAsync()
         {
-            //Do the stuff when stopped (called Stop() or stream fininshed)
+            //Do the stuff when stopped (called StopAsync() or stream fininshed)
             //---
             switch (__CacheStream.Status)
             {
@@ -77,7 +77,30 @@ namespace PuckevichCore
                     break;
                 case AudioStorageStatus.PartiallyStored:
                 case AudioStorageStatus.NotStored:
-                    await __ProducerConsumerStream.FlushToCache(__CacheStream);
+                    await __ProducerConsumerStream.FlushToCacheAsync(__CacheStream);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            __PlayingStopwatch.Reset();
+            __WebHandle.Reset();
+
+            //---
+        }
+
+        private void WhenStopped()
+        {
+            //Do the stuff when stopped (called StopAsync() or stream fininshed)
+            //---
+            switch (__CacheStream.Status)
+            {
+                case AudioStorageStatus.Stored:
+
+                    break;
+                case AudioStorageStatus.PartiallyStored:
+                case AudioStorageStatus.NotStored:
+                    __ProducerConsumerStream.FlushToCache(__CacheStream);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -173,9 +196,9 @@ namespace PuckevichCore
             }
         }
 
-        public async Task Init()
+        public void Init()
         {
-            __CacheStream = await __Storage.GetCacheStream(__Audio);
+            __CacheStream = __Storage.GetCacheStream(__Audio);
 
             switch (__CacheStream.Status)
             {
@@ -186,7 +209,28 @@ namespace PuckevichCore
                     break;
                 case AudioStorageStatus.PartiallyStored:
                 case AudioStorageStatus.NotStored:
-                    await Task.Factory.StartNew(WebDownloader);
+                    Task.Factory.StartNew(WebDownloader);
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public async Task InitAsync()
+        {
+            __CacheStream = await __Storage.GetCacheStreamAsync(__Audio);
+
+            switch (__CacheStream.Status)
+            {
+                case AudioStorageStatus.Stored:
+                    __ProducerConsumerStream = new ProducerConsumerMemoryStream();
+                    __ProducerConsumerStream.WriteFinished = true;
+
+                    break;
+                case AudioStorageStatus.PartiallyStored:
+                case AudioStorageStatus.NotStored:
+                    var t = Task.Factory.StartNew(WebDownloader);
 
                     break;
                 default:
@@ -218,12 +262,23 @@ namespace PuckevichCore
             __PlayingStopwatch.Stop();
         }
 
-        public async Task Stop()
+        public void Stop()
+        {
+            StopInternal();
+            WhenStopped();
+        }
+
+        public async Task StopAsync()
+        {
+            StopInternal();
+            await WhenStoppedAsync();
+        }
+
+        private void StopInternal()
         {
             PlayingState = PlayingState.Stopped;
             if (!Bass.BASS_ChannelStop(__BassStream))
                 Error.HandleBASSError("BASS_ChannelStop");
-            await WhenStopped();
         }
 
         public event PlayingStateChangedEvent PlayingStateChanged;

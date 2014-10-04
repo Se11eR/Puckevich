@@ -79,14 +79,14 @@ namespace PuckevichPlayer
 
         public async Task Stop()
         {
-            await __Playable.Stop();
+            await __Playable.StopAsync();
         }
 
         public async Task AudioEntryClicked()
         {
             if (__Playable.State == PlayingState.NotInit || __Playable.State == PlayingState.Stopped)
             {
-                await __Playable.Init();
+                await __Playable.InitAsync();
             }
 
             switch (__Playable.State)

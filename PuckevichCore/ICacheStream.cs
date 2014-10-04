@@ -10,7 +10,11 @@ namespace PuckevichCore
     {
         int Read(byte[] buffer, int offset, int count);
 
+        Task<int> ReadAsync(byte[] buffer, int offset, int count);
+
         void Write(byte[] buffer, int offset, int count);
+
+        Task WriteAsync(byte[] buffer, int offset, int count);
 
         long? Length { get; set; }
 
@@ -19,6 +23,8 @@ namespace PuckevichCore
             get;
             set;
         }
+
+        void Flush();
 
         Task FlushAsync();
 

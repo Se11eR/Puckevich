@@ -21,14 +21,18 @@ namespace PuckevichCore
         /// <summary>
         /// Возвращает поток кешированного аудиофайла, или создает новый, если файла нет в хранилище.
         /// </summary>
-        /// <param name="audioId"></param>
+        /// <param name="audio"></param>
         /// <returns></returns>
-        Task<ICacheStream> GetCacheStream(IAudio audio);
+        Task<ICacheStream> GetCacheStreamAsync(IAudio audio);
+
+        ICacheStream GetCacheStream(IAudio audio);
 
         /// <summary>
         /// Удаляет кешированную аудиозапись
         /// </summary>
         /// <param name="auidiId"></param>
-        Task RemovecachedAudio(long auidiId);
+        Task RemovecachedAudioAsync(long auidiId);
+
+        void RemovecachedAudio(long auidiId);
     }
 }

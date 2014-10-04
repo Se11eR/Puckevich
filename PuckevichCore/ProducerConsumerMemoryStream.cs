@@ -49,15 +49,44 @@ namespace PuckevichCore
             __WriteFinished = false;
         }
 
-        public async Task FlushToCache(ICacheStream cacheStream)
+        private void SetFlushing()
         {
-            if (cacheStream == null) throw new ArgumentNullException("cacheStream");
-
             lock (__Lock)
             {
                 __WriteWaitHandle.Set();
                 __IsFlushingNow = true;
             }
+        }
+
+        public void FlushToCache(ICacheStream cacheStream)
+        {
+            if (cacheStream == null) throw new ArgumentNullException("cacheStream");
+
+            SetFlushing();
+
+            if (__WritePosition > cacheStream.Position)
+            {
+                var toWrite = __WritePosition - cacheStream.Position;
+                var buf = new byte[toWrite];
+                __InnerStream.Position = cacheStream.Position;
+
+                int allRead = 0;
+                while (allRead < toWrite)
+                {
+                    int read;
+                    allRead += (read = __InnerStream.Read(buf, 0, buf.Length));
+                    cacheStream.Write(buf, 0, read);
+                }
+
+                cacheStream.Flush();
+            }
+        }
+
+        public async Task FlushToCacheAsync(ICacheStream cacheStream)
+        {
+            if (cacheStream == null) throw new ArgumentNullException("cacheStream");
+
+            SetFlushing();
 
             if (__WritePosition > cacheStream.Position)
             {

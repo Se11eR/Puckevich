@@ -50,6 +50,15 @@ namespace PuckevichCore
             }
         }
 
+        private async Task CheckAndInitAsync()
+        {
+            if (!__IsInitialized || __InternalPlayable.State == PlayingState.Stopped)
+            {
+                await __InternalPlayable.InitAsync();
+                __IsInitialized = true;
+            }
+        }
+
         public long AudioId
         {
             get { return __AudioId; }
@@ -95,13 +104,23 @@ namespace PuckevichCore
             }
         }
 
-        public async Task Stop()
+        public void Stop()
         {
             CheckInit();
 
             if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
             {
-                await __InternalPlayable.Stop();
+                __InternalPlayable.Stop();
+            }
+        }
+
+        public async Task StopAsync()
+        {
+            await CheckAndInitAsync();
+
+            if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
+            {
+                await __InternalPlayable.StopAsync();
             }
         }
 
@@ -133,10 +152,16 @@ namespace PuckevichCore
             get { return this; }
         }
 
-        public async Task Init()
+        public void Init()
         {
             __IsInitialized = true;
-            await __InternalPlayable.Init();
+            __InternalPlayable.Init();
+        }
+
+        public async Task InitAsync()
+        {
+            await __InternalPlayable.InitAsync();
+            __IsInitialized = true;
         }
 
         public void Dispose()

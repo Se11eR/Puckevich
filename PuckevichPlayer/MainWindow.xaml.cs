@@ -27,6 +27,8 @@ namespace PuckevichPlayer
         {
             InitializeComponent();
 
+            string email = "vkontakt232@gmail.com";
+            string pass = "ohmaniwillneverforgiveyourassforthisshit";
 
             var storage = new Storage();
             storage.Initialize();
