@@ -58,14 +58,17 @@
     <Compile Include="AsyncVirtualizingCollection.cs" />
     <Compile Include="AudioModel.cs" />
     <Compile Include="AudioModelProviderWrapper.cs" />
+    <Compile Include="StorageImplementation\CacheStream.cs" />
     <Compile Include="Controls\AudioEntry.xaml.cs">
       <DependentUpon>AudioEntry.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Converters\IntToDurationConverter.cs" />
+    <Compile Include="StorageImplementation\JsonModel.cs" />
     <Compile Include="p_Player.xaml.cs">
       <DependentUpon>p_Player.xaml</DependentUpon>
     </Compile>
+    <Compile Include="StorageImplementation\Storage.cs" />
     <Compile Include="VirtualizingCollection.cs" />
     <Page Include="Controls\AudioEntry.xaml">
       <SubType>Designer</SubType>

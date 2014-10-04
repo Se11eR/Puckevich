@@ -12,12 +12,19 @@ namespace PuckevichCore
 
         void Write(byte[] buffer, int offset, int count);
 
-        Task WriteAsync(byte[] buffer, int offset, int count);
-
         long? Length { get; set; }
 
-        long Position { get; }
+        long Position
+        {
+            get;
+            set;
+        }
 
         Task FlushAsync();
+
+        AudioStorageStatus Status
+        {
+            get;
+        }
     }
 }

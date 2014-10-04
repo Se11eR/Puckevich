@@ -7,35 +7,9 @@ using System.Threading.Tasks;
 
 namespace PuckevichCore
 {
-    public enum PlayingState
-    {
-        NotInit,
-        Stopped,
-        Paused,
-        Playing
-    }
+    public delegate void PlayingStateChangedEvent(IManagedPlayable sender);
 
-
-    public interface IAudio
-    {
-        long AudioId { get; }
-
-        long UserId { get; }
-
-        string Title { get; }
-
-        string Artist { get; }
-
-        int Duration { get; }
-
-        IManagedPlayable Playable { get; }
-    }
-
-    public delegate void AudioStoppedEvent(IManagedPlayable audio);
-
-    public delegate void AudioStalledEvent(IManagedPlayable audio);
-
-    public interface IManagedPlayable
+    public interface IManagedPlayable : IDisposable
     {
 
         void Play();
@@ -48,12 +22,10 @@ namespace PuckevichCore
 
         int SecondsPlayed { get; }
 
-        double PercentageDownloaded { get; }
+        double Downloaded { get; }
 
-        event AudioStoppedEvent AudioStopped;
+        event PlayingStateChangedEvent PlayingStateChanged;
 
         PlayingState State { get; }
-
-        event AudioStalledEvent AudioStalled;
     }
 }

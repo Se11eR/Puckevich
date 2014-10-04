@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:cont="clr-namespace:PuckevichPlayer.Controls"
       mc:Ignorable="d" 
+      Unloaded="P_Player_OnUnloaded"
       d:DesignHeight="300" d:DesignWidth="300"
 	  Title="p_Player">
     <Page.Resources>

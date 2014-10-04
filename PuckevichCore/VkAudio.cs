@@ -31,23 +31,22 @@ namespace PuckevichCore
             __Artist = artist;
             __Duration = duration;
 
-            __InternalPlayable = new PlayableAudio(this, storage, downloader, audioId, url);
-            __InternalPlayable.AudioStopped += playable => OnAudioStopped();
+            __InternalPlayable = new PlayableAudio(this, storage, downloader, url);
+            __InternalPlayable.PlayingStateChanged += playable => OnPlayingStateChanged();
         }
 
-        private void OnAudioStopped()
+        private void OnPlayingStateChanged()
         {
-            var handler = AudioStopped;
+            var handler = PlayingStateChanged;
             if (handler != null)
                 handler(Playable);
         }
 
-        private async Task CheckInit()
+        private void CheckInit()
         {
             if (!__IsInitialized || __InternalPlayable.State == PlayingState.Stopped)
             {
-                await __InternalPlayable.Init();
-                __IsInitialized = true;
+                throw new ApplicationException("VkAudio was not initialized!");
             }
         }
 
@@ -86,13 +85,11 @@ namespace PuckevichCore
             }
         }
 
-        
-
         public void Pause()
         {
             CheckInit();
 
-            if (__InternalPlayable.State == PlayingState.Playing)
+            if (__InternalPlayable.State != PlayingState.Paused && __InternalPlayable.State != PlayingState.NotInit)
             {
                 __InternalPlayable.Pause();
             }
@@ -100,25 +97,23 @@ namespace PuckevichCore
 
         public async Task Stop()
         {
-            await CheckInit();
+            CheckInit();
 
-            if (__InternalPlayable.State == PlayingState.Playing)
+            if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
             {
                 await __InternalPlayable.Stop();
             }
         }
 
-        public double PercentageDownloaded
+        public double Downloaded
         {
             get
             {
-                return __InternalPlayable.PercentageDownloaded;
+                return __InternalPlayable.Downloaded;
             }
         }
 
-        public event AudioStoppedEvent AudioStopped;
-
-        public event AudioStalledEvent AudioStalled;
+        public event PlayingStateChangedEvent PlayingStateChanged;
 
         public int SecondsPlayed
         {
@@ -128,12 +123,10 @@ namespace PuckevichCore
             }
         }
 
-
         public PlayingState State
         {
             get { return __InternalPlayable.State; }
         }
-
 
         public IManagedPlayable Playable
         {
@@ -144,6 +137,11 @@ namespace PuckevichCore
         {
             __IsInitialized = true;
             await __InternalPlayable.Init();
+        }
+
+        public void Dispose()
+        {
+            __InternalPlayable.Dispose();
         }
     }
 }

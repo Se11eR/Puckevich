@@ -34,11 +34,6 @@ namespace PuckevichCore
 
         public void Dispose()
         {
-            foreach (var audio in PlayableAudio.OpenedBassChannels)
-            {
-                audio.Stop();
-            }
-
             Bass.BASS_Free();
         }
     }

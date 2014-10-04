@@ -73,8 +73,13 @@ namespace PuckevichPlayer
         {
             get
             {
-                return __Playable.PercentageDownloaded;
+                return __Playable.Downloaded;
             }
+        }
+
+        public async Task Stop()
+        {
+            await __Playable.Stop();
         }
 
         public async Task AudioEntryClicked()
@@ -101,7 +106,6 @@ namespace PuckevichPlayer
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            AudioState = __Playable.State;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

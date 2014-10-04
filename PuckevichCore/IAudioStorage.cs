@@ -19,31 +19,16 @@ namespace PuckevichCore
         void Initialize();
 
         /// <summary>
-        /// Принимает дескриптор аудио-файла и возвращает поток для записи в него
-        /// </summary>
-        /// <param name="audio"></param>
-        /// <returns></returns>
-        Task<ICacheStream> CreateCacheStream(IAudio audio);
-
-        /// <summary>
-        /// Возвращает поток кешированного аудиофайла
+        /// Возвращает поток кешированного аудиофайла, или создает новый, если файла нет в хранилище.
         /// </summary>
         /// <param name="audioId"></param>
         /// <returns></returns>
-        Task<ICacheStream> LookupCacheStream(long audioId);
+        Task<ICacheStream> GetCacheStream(IAudio audio);
 
         /// <summary>
         /// Удаляет кешированную аудиозапись
         /// </summary>
         /// <param name="auidiId"></param>
-        void RemovecachedAudio(long auidiId);
-
-        /// <summary>
-        /// Возвращает статус состояния в хранилище для аудио-файла. 
-        /// </summary>
-        /// <param name="audioId">Vk audio id</param>
-        /// <param name="bytesDownloaded">Если файл частично выкачан, это количество выкачанных байт, иначе - 0</param>
-        /// <returns></returns>
-        AudioStorageStatus GetStatus(long audioId);
+        Task RemovecachedAudio(long auidiId);
     }
 }

@@ -13,48 +13,85 @@ namespace PuckevichCore
 
     internal class PlayableAudio : IManagedPlayable
     {
-        internal static readonly List<IManagedPlayable> OpenedBassChannels = new List<IManagedPlayable>();
-
         private readonly BASS_FILEPROCS __BASSFileProcs;
         private readonly SYNCPROC __EndStreamProc;
 
-        private readonly long __Id;
         private readonly IAudio __Audio;
         private readonly IAudioStorage __Storage;
         private readonly EventWaitHandle __WebHandle = new AutoResetEvent(false);
         private readonly IWebDownloader __Downloader;
         private readonly Uri __Url;
-        private readonly AudioStorageStatus __StorageStatus;
         private ICacheStream __CacheStream;
         private ProducerConsumerMemoryStream __ProducerConsumerStream;
         private PlayingState __PlayingState = PlayingState.NotInit;
         private int __BassStream;
-        private long __LengthInBytes;
         private double __PercentsDownloaded;
         private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
 
-        internal PlayableAudio(IAudio audio, IAudioStorage storage, IWebDownloader downloader, long id, Uri url)
+        internal PlayableAudio(IAudio audio, IAudioStorage storage, IWebDownloader downloader, Uri url)
         {
             __Audio = audio;
             __Storage = storage;
             __Downloader = downloader;
-            __Id = id;
             __Url = url;
-            __StorageStatus = __Storage.GetStatus(__Id);
 
             __BASSFileProcs = new BASS_FILEPROCS((IntPtr user) => { },
                                                  (IntPtr user) => 0,
                                                  ProducerConsumerReadProc,
                                                  (long offset, IntPtr user) => false);
 
-            __EndStreamProc = (int handle, int channel, int data, IntPtr user) => OnAudioStopped();
+            __EndStreamProc = (int handle, int channel, int data, IntPtr user) =>
+            { var _ = WhenStopped(); };
+        }
+
+        private PlayingState PlayingState
+        {
+            get
+            {
+                return __PlayingState;
+            }
+            set
+            {
+                var oldState = __PlayingState;
+                __PlayingState = value;
+
+                if (oldState != __PlayingState)
+                {
+                    var handler = PlayingStateChanged;
+                    if (handler != null)
+                        handler(this);
+                }
+            }
+        }
+
+        private async Task WhenStopped()
+        {
+            //Do the stuff when stopped (called Stop() or stream fininshed)
+            //---
+            switch (__CacheStream.Status)
+            {
+                case AudioStorageStatus.Stored:
+
+                    break;
+                case AudioStorageStatus.PartiallyStored:
+                case AudioStorageStatus.NotStored:
+                    await __ProducerConsumerStream.FlushToCache(__CacheStream);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            __PlayingStopwatch.Reset();
+            __WebHandle.Reset();
+
+            //---
         }
 
         private void WebDownloader()
         {
             long audioLengthInBytes;
 
-            if (__PlayingState == PlayingState.Stopped)
+            if (PlayingState == PlayingState.Stopped)
                 return;
 
             var webStream = __Downloader.GetUrlStream(__Url, out audioLengthInBytes);
@@ -82,7 +119,7 @@ namespace PuckevichCore
             int blockRead = 0;
             int lengthRead;
 
-            if (__PlayingState == PlayingState.Stopped)
+            if (PlayingState == PlayingState.Stopped)
                 return;
 
             while ((lengthRead = webStream.Read(buffer, 0, buffer.Length)) != 0)
@@ -97,9 +134,9 @@ namespace PuckevichCore
 
                 }
 
-                __PercentsDownloaded = (double)__ProducerConsumerStream.WritePosition / __LengthInBytes;
+                __PercentsDownloaded = (double)__ProducerConsumerStream.WritePosition / __CacheStream.Length.Value;
 
-                if (__PlayingState == PlayingState.Stopped)
+                if (PlayingState == PlayingState.Stopped)
                     return;
             }
 
@@ -134,39 +171,21 @@ namespace PuckevichCore
             }
         }
 
-        private async Task HandleStoredFile()
-        {
-            __CacheStream = await __Storage.LookupCacheStream(__Id);
-            __ProducerConsumerStream = new ProducerConsumerMemoryStream();
-            __ProducerConsumerStream.WriteFinished = true;
-            __LengthInBytes = __ProducerConsumerStream.Length;
-        }
-
-        private async Task HandleNotStoredFile(bool partiallyStored)
-        {
-            if (partiallyStored)
-            {
-                __CacheStream = await __Storage.LookupCacheStream(__Id);
-            }
-            else
-            {
-                __CacheStream = await __Storage.CreateCacheStream(__Audio);
-            }
-
-            //Качаем песню с vk
-            await Task.Factory.StartNew(WebDownloader);
-        }
-
         public async Task Init()
         {
-            switch (__StorageStatus)
+            __CacheStream = await __Storage.GetCacheStream(__Audio);
+
+            switch (__CacheStream.Status)
             {
                 case AudioStorageStatus.Stored:
-                    await HandleStoredFile();
+                    __ProducerConsumerStream = new ProducerConsumerMemoryStream();
+                    __ProducerConsumerStream.WriteFinished = true;
+
                     break;
                 case AudioStorageStatus.PartiallyStored:
                 case AudioStorageStatus.NotStored:
-                    await HandleNotStoredFile(__StorageStatus == AudioStorageStatus.PartiallyStored);
+                    await Task.Factory.StartNew(WebDownloader);
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -179,37 +198,11 @@ namespace PuckevichCore
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
             Bass.BASS_ChannelSetSync(__BassStream, BASSSync.BASS_SYNC_END, 0, __EndStreamProc, IntPtr.Zero);
-
-            OpenedBassChannels.Add(this);
-        }
-        private async Task OnAudioStopped()
-        {
-            //Do the stuff when stopped (called Stop() or stream fininshed)
-            //---
-            switch (__StorageStatus)
-            {
-                case AudioStorageStatus.Stored:
-
-                    break;
-                case AudioStorageStatus.PartiallyStored:
-                case AudioStorageStatus.NotStored:
-                    await __ProducerConsumerStream.Flush(__CacheStream);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            __PlayingStopwatch.Reset();
-            __WebHandle.Reset();
-            //---
-            var handler = AudioStopped;
-            if (handler != null)
-                handler(this);
         }
 
         public void Play()
         {
-            __PlayingState = PlayingState.Playing;
+            PlayingState = PlayingState.Playing;
             if (!Bass.BASS_ChannelPlay(__BassStream, false))
                 Error.HandleBASSError("BASS_ChannelPlay");
             __PlayingStopwatch.Start();
@@ -217,7 +210,7 @@ namespace PuckevichCore
 
         public void Pause()
         {
-            __PlayingState = PlayingState.Paused;
+            PlayingState = PlayingState.Paused;
             if (!Bass.BASS_ChannelPause(__BassStream))
                 Error.HandleBASSError("BASS_ChannelPause");
             __PlayingStopwatch.Stop();
@@ -225,33 +218,18 @@ namespace PuckevichCore
 
         public async Task Stop()
         {
-            __PlayingState = PlayingState.Stopped;
+            PlayingState = PlayingState.Stopped;
             if (!Bass.BASS_ChannelStop(__BassStream))
                 Error.HandleBASSError("BASS_ChannelStop");
-            await OnAudioStopped();
+            await WhenStopped();
         }
 
-        public event AudioStoppedEvent AudioStopped;
+        public event PlayingStateChangedEvent PlayingStateChanged;
 
-        public double PercentageDownloaded
+        public double Downloaded
         {
             get { return __PercentsDownloaded; }
         }
-
-        ~PlayableAudio()
-        {
-            if (__PlayingState != PlayingState.NotInit && __PlayingState != PlayingState.Stopped)
-                Stop();
-            Bass.BASS_StreamFree(__BassStream);
-            OpenedBassChannels.Remove(this);
-
-            if (__WebHandle != null)
-                __WebHandle.Dispose();
-            if (__ProducerConsumerStream != null)
-                __ProducerConsumerStream.Dispose();
-        }
-
-        public event AudioStalledEvent AudioStalled;
 
         public int SecondsPlayed
         {
@@ -265,8 +243,19 @@ namespace PuckevichCore
         {
             get
             {
-                return __PlayingState;
+                return PlayingState;
             }
         }
+
+        public void Dispose()
+        {
+            Bass.BASS_StreamFree(__BassStream);
+
+            if (__WebHandle != null)
+                __WebHandle.Dispose();
+            if (__ProducerConsumerStream != null)
+                __ProducerConsumerStream.Dispose();
+        }
+        
     }
 }
