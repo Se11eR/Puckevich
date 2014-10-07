@@ -13,7 +13,7 @@ namespace PuckevichCore
 
         Task WriteAsync(byte[] buffer, int offset, int count);
 
-        long? Length { get; set; }
+        long AudioSize { get; set; }
 
         long Position
         {
@@ -21,8 +21,10 @@ namespace PuckevichCore
             set;
         }
 
+        /// <summary>
+        /// Сохраняет данные потока в постоянную память. 
+        /// </summary>
         void Flush();
-
         Task FlushAsync();
 
         AudioStorageStatus Status

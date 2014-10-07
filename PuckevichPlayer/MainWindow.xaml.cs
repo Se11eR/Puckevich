@@ -26,8 +26,7 @@ namespace PuckevichPlayer
         public MainWindow()
         {
             InitializeComponent();
-            string email = "vkontakt232@gmail.com";
-            string pass = "ohmaniwillneverforgiveyourassforthisshit";
+
 
             var storage = new CacheStorage();
             storage.Initialize();
@@ -36,8 +35,9 @@ namespace PuckevichPlayer
             VkAudioManager.Instance.Init(email, pass, storage, web);
             IItemsProvider<IAudio> audioProvider = VkAudioManager.Instance.AudioProvider;
             var virtualizingCollection = new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(audioProvider),
-                                                                                     PAGE_SIZE,
-                                                                                     PAGE_TIMEOUT);
+                                                                                        PAGE_SIZE,
+                                                                                        PAGE_TIMEOUT);
+
             Content = new p_Player(virtualizingCollection);
             Closed += (sender, args) =>
             {
@@ -45,5 +45,47 @@ namespace PuckevichPlayer
                 storage.Dispose();
             };
         }
+
+
+        static void DownloadFile(string sourceUrl, string destinationPath)
+        {
+            long iFileSize = 0;
+            int iBufferSize = 1024;
+            iBufferSize *= 1000;
+            long iExistLen = 0;
+            System.IO.FileStream saveFileStream;
+            if (System.IO.File.Exists(destinationPath))
+            {
+                System.IO.FileInfo fINfo =
+                   new System.IO.FileInfo(destinationPath);
+                iExistLen = fINfo.Length;
+            }
+            if (iExistLen > 0)
+                saveFileStream = new System.IO.FileStream(destinationPath,
+                  System.IO.FileMode.Append, System.IO.FileAccess.Write,
+                  System.IO.FileShare.ReadWrite);
+            else
+                saveFileStream = new System.IO.FileStream(destinationPath,
+                  System.IO.FileMode.Create, System.IO.FileAccess.Write,
+                  System.IO.FileShare.ReadWrite);
+
+            System.Net.HttpWebRequest hwRq;
+            System.Net.HttpWebResponse hwRes;
+            hwRq = (System.Net.HttpWebRequest)System.Net.HttpWebRequest.Create(sourceUrl);
+            hwRq.AddRange((int)iExistLen);
+            System.IO.Stream smRespStream;
+            hwRes = (System.Net.HttpWebResponse)hwRq.GetResponse();
+            smRespStream = hwRes.GetResponseStream();
+
+            iFileSize = hwRes.ContentLength;
+
+            int iByteSize;
+            byte[] downBuffer = new byte[iBufferSize];
+
+            while ((iByteSize = smRespStream.Read(downBuffer, 0, downBuffer.Length)) > 0)
+            {
+                saveFileStream.Write(downBuffer, 0, iByteSize);
+            }
+        }  
     }
 }

@@ -27,8 +27,6 @@ namespace PuckevichCore
         /// Удаляет кешированную аудиозапись
         /// </summary>
         /// <param name="auidiId"></param>
-        Task RemovecachedAudioAsync(long auidiId);
-
         void RemovecachedAudio(long auidiId);
     }
 }

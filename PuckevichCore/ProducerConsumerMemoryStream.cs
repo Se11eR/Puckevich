@@ -10,17 +10,20 @@ namespace PuckevichCore
     internal class ProducerConsumerMemoryStream : IDisposable
     {
         private readonly Stream __InnerStream;
+        private readonly ICacheStream __CacheStream;
         private long __ReadPosition;
         private long __WritePosition;
         private readonly object __Lock;
         private bool __WriteFinished;
-        private bool __IsFlushingNow = false;
+        private bool __IsFlushingNow;
 
         private readonly EventWaitHandle __WriteWaitHandle = new AutoResetEvent(false);
 
-        public ProducerConsumerMemoryStream(Stream innerStream = null)
+        public ProducerConsumerMemoryStream(ICacheStream cacheStream = null)
         {
-            __InnerStream = innerStream ?? new MemoryStream();
+            __InnerStream = new MemoryStream();
+            if (cacheStream != null)
+                __CacheStream = cacheStream;
             __Lock = new object();
         }
 
@@ -56,6 +59,35 @@ namespace PuckevichCore
             }
         }
 
+        public void CopyToInnerStream()
+        {
+            if (__CacheStream != null)
+            {
+                var initialPosition = __CacheStream.Position;
+                var toWrite = __CacheStream.Position;
+                __CacheStream.Position = 0;
+                var buf = new byte[8192];
+
+                int allRead = 0;
+                while (allRead < toWrite)
+                {
+                    int read;
+                    allRead += (read = __CacheStream.Read(buf, 0, buf.Length));
+                    Write(buf, 0, read);
+                }
+
+                __CacheStream.Position = initialPosition;
+            }
+        }
+
+        public async Task CopyToInnerStreamAsync()
+        {
+            if (__CacheStream != null)
+            {
+                await Task.Run((Action)CopyToInnerStream);
+            }
+        }
+
         public void FlushToCache(ICacheStream cacheStream)
         {
             if (cacheStream == null) throw new ArgumentNullException("cacheStream");
@@ -65,7 +97,7 @@ namespace PuckevichCore
             if (__WritePosition > cacheStream.Position)
             {
                 var toWrite = __WritePosition - cacheStream.Position;
-                var buf = new byte[toWrite];
+                var buf = new byte[16384];
                 __InnerStream.Position = cacheStream.Position;
 
                 int allRead = 0;
@@ -89,10 +121,10 @@ namespace PuckevichCore
             if (__WritePosition > cacheStream.Position)
             {
                 var toWrite = __WritePosition - cacheStream.Position;
-                var buf = new byte[toWrite];
+                var buf = new byte[16384];
                 __InnerStream.Position = cacheStream.Position;
 
-                await Task.Factory.StartNew(() =>
+                await Task.Run(() =>
                 {
                     int allRead = 0;
                     while (allRead < toWrite)
@@ -104,17 +136,6 @@ namespace PuckevichCore
                 });
 
                 await cacheStream.FlushAsync();
-            }
-        }
-
-        public long Length
-        {
-            get
-            {
-                lock (__Lock)
-                {
-                    return __InnerStream.Length;
-                }
             }
         }
 
@@ -157,7 +178,11 @@ namespace PuckevichCore
 
         public void Dispose()
         {
-            __InnerStream.Close();
+            if (__InnerStream != null)
+                __InnerStream.Close();
+            //if (__CacheStream != null)
+            //    __CacheStream.Dispose();
+
             __WriteWaitHandle.Dispose();
         }
     }

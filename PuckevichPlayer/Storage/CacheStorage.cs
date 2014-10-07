@@ -14,45 +14,28 @@ namespace PuckevichPlayer.Storage
         private const string FILE_NAME_PATTERN = "{0} - {1}#{2}#.mp3";
 
         private IsolatedStorageFile __IsoStorage;
-        private Dictionary<long, JsonAudioModel> __AudioDict = new Dictionary<long,JsonAudioModel>();
+        private Dictionary<long, JsonAudioModel> __AudioDict = new Dictionary<long, JsonAudioModel>();
         private JsonTextWriter __Writer;
         private JsonSerializer __Serializer;
 
-        private async Task UpdateFileAsync()
+        private string MakeFileName(JsonAudioModel model)
         {
-            await Task.Factory.StartNew(() =>__Serializer.Serialize(__Writer, __AudioDict));
-        }
-
-        private void UpdateFile()
-        {
-            __Serializer.Serialize(__Writer, __AudioDict);
+            return String.Format(FILE_NAME_PATTERN, model.Artist, model.Title, model.AudioId);
         }
 
         private ICacheStream LocateCacheStream(JsonAudioModel audio)
         {
-            ICacheStream s =
-                new CacheStream(
-                    __IsoStorage.OpenFile(String.Format(FILE_NAME_PATTERN, audio.Artist, audio.Title, audio.AudioId), FileMode.Open),
-                    new Task<Task>(UpdateFileAsync),
-                    UpdateFile);
-            s.Position = s.Length ?? 1 - 1;
+            var isoStream = new IsolatedStorageFileStream(MakeFileName(audio), FileMode.Open);
+            ICacheStream s = new CacheStream(isoStream, audio);
+
+            s.AudioSize = audio.AudioSize;
+            s.Position = isoStream.Length;
             return s;
         }
 
         private async Task<ICacheStream> LocateCacheStreamAsync(JsonAudioModel audio)
         {
-            ICacheStream s =
-                await
-                Task.Factory.StartNew(
-                                      () =>
-                                      new CacheStream(
-                                          __IsoStorage.OpenFile(String.Format(FILE_NAME_PATTERN, audio.Artist, audio.Title, audio.AudioId),
-                                                                FileMode.Open),
-                                          new Task<Task>(UpdateFileAsync),
-                                          UpdateFile));
-            if (s != null)
-                s.Position = s.Length ?? 1 - 1;
-            return s;
+            return await Task.Run(() => LocateCacheStream(audio));
         }
 
         private ICacheStream CreateCacheStream(IAudio audio)
@@ -67,47 +50,14 @@ namespace PuckevichPlayer.Storage
             };
 
             __AudioDict.Add(audioModel.AudioId, audioModel);
-            ICacheStream s =
-                new CacheStream(
-                    __IsoStorage.CreateFile(String.Format(FILE_NAME_PATTERN, audioModel.Artist, audioModel.Title, audioModel.AudioId)),
-                    new Task<Task>(UpdateFileAsync),
-                    UpdateFile);
-            UpdateFile();
+            ICacheStream s = new CacheStream(new IsolatedStorageFileStream(MakeFileName(audioModel), FileMode.Create), audioModel);
 
-            s.Length = null;
-            s.Position = 0;
             return s;
         }
 
         private async Task<ICacheStream> CreateCacheStreamAsync(IAudio audio)
         {
-            var audioModel = new JsonAudioModel()
-            {
-                Artist = audio.Artist,
-                AudioId = audio.AudioId,
-                Duration = audio.Duration,
-                Title = audio.Title,
-                UserId = audio.UserId,
-            };
-
-            __AudioDict.Add(audioModel.AudioId, audioModel);
-            ICacheStream s =
-                await
-                Task.Factory.StartNew(
-                                      () =>
-                                      new CacheStream(
-                                          __IsoStorage.CreateFile(String.Format(FILE_NAME_PATTERN,
-                                                                                audioModel.Artist,
-                                                                                audioModel.Title,
-                                                                                audioModel.AudioId)),
-                                          new Task<Task>(UpdateFileAsync),
-                                          UpdateFile));
-            await UpdateFileAsync();
-
-
-            s.Length = null;
-            s.Position = 0;
-            return s;
+            return await Task.Run(() => CreateCacheStream(audio));
         }
 
         public async Task<ICacheStream> GetCacheStreamAsync(IAudio audio)
@@ -115,7 +65,16 @@ namespace PuckevichPlayer.Storage
             JsonAudioModel audioModel;
             ICacheStream s;
             if (__AudioDict.TryGetValue(audio.AudioId, out audioModel))
-                s = await LocateCacheStreamAsync(audioModel);
+            {
+                if (__IsoStorage.FileExists(MakeFileName(audioModel)))
+                {
+                    s = await LocateCacheStreamAsync(audioModel);
+                }
+                else
+                {
+                    s = await CreateCacheStreamAsync(audio);
+                }
+            }
             else
                 s = await CreateCacheStreamAsync(audio);
 
@@ -126,7 +85,19 @@ namespace PuckevichPlayer.Storage
         {
             JsonAudioModel audioModel;
             ICacheStream s;
-            s = __AudioDict.TryGetValue(audio.AudioId, out audioModel) ? LocateCacheStream(audioModel) : CreateCacheStream(audio);
+            if (__AudioDict.TryGetValue(audio.AudioId, out audioModel))
+            {
+                if (__IsoStorage.FileExists(MakeFileName(audioModel)))
+                {
+                    s = LocateCacheStream(audioModel);
+                }
+                else
+                {
+                    s = CreateCacheStream(audio);
+                }
+            }
+            else
+                s = CreateCacheStream(audio);
 
             return s;
         }
@@ -147,26 +118,25 @@ namespace PuckevichPlayer.Storage
                 __Serializer = new JsonSerializer { Formatting = Formatting.Indented };
                 __AudioDict = __Serializer.Deserialize<Dictionary<long, JsonAudioModel>>(file) ?? new Dictionary<long, JsonAudioModel>();
             }
-
-            __Writer = new JsonTextWriter(new StreamWriter(__IsoStorage.OpenFile(MAP_FILE, FileMode.Open)));
-        }
-
-        public async Task RemovecachedAudioAsync(long auidiId)
-        {
-            __AudioDict.Remove(auidiId);
-            await UpdateFileAsync();
         }
 
         public void RemovecachedAudio(long auidiId)
         {
             __AudioDict.Remove(auidiId);
-            UpdateFile();
         }
 
         public void Dispose()
         {
-            __Writer.Close();
-            __IsoStorage.Close();
+            try
+            {
+                __Writer = new JsonTextWriter(new StreamWriter(__IsoStorage.OpenFile(MAP_FILE, FileMode.Truncate)));
+                __Serializer.Serialize(__Writer, __AudioDict);
+            }
+            finally
+            {
+                __Writer.Close();
+                __IsoStorage.Close();
+            }
         }
     }
 }

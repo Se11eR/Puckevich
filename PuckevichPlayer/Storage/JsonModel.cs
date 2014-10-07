@@ -12,6 +12,6 @@ namespace PuckevichPlayer.Storage
 
         public int Duration { get; set; }
 
-        public long FileSize { get; set; }
+        public long AudioSize { get; set; }
     }
 }

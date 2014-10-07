@@ -6,8 +6,8 @@ namespace PuckevichCore
 {
     public interface IWebDownloader
     {
-        Stream GetUrlStream(Uri url, out long streamLength);
+        Stream GetUrlStream(Uri url, long startFrom, out long streamLength);
 
-        Task<Tuple<Stream, long>> GetUrlStreamAsync(Uri url);
+        Task<Tuple<Stream, long>> GetUrlStreamAsync(Uri url, long startFrom);
     }
 }

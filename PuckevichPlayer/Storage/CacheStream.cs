@@ -8,26 +8,26 @@ namespace PuckevichPlayer.Storage
     internal class CacheStream : ICacheStream
     {
         private readonly Stream __Stream;
-        private readonly Task<Task> __UpdateFileTaskAsync;
-        private readonly Action __UpdateFileTask;
-        private long? __FileLength;
+        private readonly JsonAudioModel __Model;
+        private long __AudioSize;
 
-        internal CacheStream(Stream stream, Task<Task> updateFileTaskAsync, Action updateFileTask)
+        internal CacheStream(Stream stream, JsonAudioModel model)
         {
             __Stream = stream;
-            __UpdateFileTaskAsync = updateFileTaskAsync;
-            __UpdateFileTask = updateFileTask;
-            __FileLength = __Stream.Length;
+            __Model = model;
         }
 
         public AudioStorageStatus Status
         {
             get
             {
-                if (__Stream.Position >= __FileLength)
-                    return AudioStorageStatus.Stored;
-                if (__Stream.Position > 0)
-                    return AudioStorageStatus.PartiallyStored;
+                if (__AudioSize > 0)
+                {
+                    if (__Stream.Position >= __AudioSize)
+                        return AudioStorageStatus.Stored;
+                    if (__Stream.Position > 0)
+                        return AudioStorageStatus.PartiallyStored;
+                }
 
                 return AudioStorageStatus.NotStored;
             }
@@ -53,10 +53,10 @@ namespace PuckevichPlayer.Storage
             await __Stream.WriteAsync(buffer, offset, count);
         }
 
-        public long? Length
+        public long AudioSize
         {
-            get { return __FileLength; }
-            set { __FileLength = value; }
+            get { return __AudioSize; }
+            set { __AudioSize = value; }
         }
 
         public long Position
@@ -71,15 +71,13 @@ namespace PuckevichPlayer.Storage
         public void Flush()
         {
             __Stream.Flush();
-            Length = __Stream.Length;
-            __UpdateFileTask();
+            __Model.AudioSize = AudioSize;
         }
 
         public async Task FlushAsync()
         {
             await __Stream.FlushAsync();
-            Length = __Stream.Length;
-            await __UpdateFileTaskAsync;
+            __Model.AudioSize = AudioSize;
         }
 
         public void Dispose()
