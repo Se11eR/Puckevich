@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using PuckevichCore;
 
-namespace PuckevichPlayer.StorageImplementation
+namespace PuckevichPlayer.Storage
 {
-    public class Storage : IAudioStorage
+    public class CacheStorage : IAudioStorage
     {
         private const string MAP_FILE = "audios.json";
         private const string FILE_NAME_PATTERN = "{0} - {1}#{2}#.mp3";

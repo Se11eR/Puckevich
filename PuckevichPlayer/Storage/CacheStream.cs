@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using PuckevichCore;
 
-namespace PuckevichPlayer.StorageImplementation
+namespace PuckevichPlayer.Storage
 {
     internal class CacheStream : ICacheStream
     {
@@ -12,7 +12,7 @@ namespace PuckevichPlayer.StorageImplementation
         private readonly Action __UpdateFileTask;
         private long? __FileLength;
 
-        public CacheStream(Stream stream, Task<Task> updateFileTaskAsync, Action updateFileTask)
+        internal CacheStream(Stream stream, Task<Task> updateFileTaskAsync, Action updateFileTask)
         {
             __Stream = stream;
             __UpdateFileTaskAsync = updateFileTaskAsync;

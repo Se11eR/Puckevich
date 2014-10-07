@@ -9,8 +9,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using PuckevichPlayer.Storage;
 using PuckevichCore;
-using PuckevichPlayer.StorageImplementation;
 using PuckevichPlayer.Virtualizing;
 
 namespace PuckevichPlayer
@@ -26,9 +26,10 @@ namespace PuckevichPlayer
         public MainWindow()
         {
             InitializeComponent();
+            string email = "vkontakt232@gmail.com";
+            string pass = "ohmaniwillneverforgiveyourassforthisshit";
 
-
-            var storage = new Storage();
+            var storage = new CacheStorage();
             storage.Initialize();
             var web = new WedDownloader();
 
