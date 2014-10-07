@@ -75,7 +75,7 @@ namespace PuckevichCore
                     break;
                 case AudioStorageStatus.PartiallyStored:
                 case AudioStorageStatus.NotStored:
-                    await __ProducerConsumerStream.FlushToCacheAsync(__CacheStream);
+                    await __ProducerConsumerStream.FlushToCacheAsync(__CacheStream).ConfigureAwait(false);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -220,7 +220,7 @@ namespace PuckevichCore
 
         public async Task InitAsync()
         {
-            __CacheStream = await __Storage.GetCacheStreamAsync(__Audio);
+            __CacheStream = await __Storage.GetCacheStreamAsync(__Audio).ConfigureAwait(false);
 
             switch (__CacheStream.Status)
             {
@@ -231,7 +231,8 @@ namespace PuckevichCore
                     break;
                 case AudioStorageStatus.PartiallyStored:
                 case AudioStorageStatus.NotStored:
-                    var t = Task.Factory.StartNew(WebDownloader);
+                    var task = Task.Run((Action) WebDownloader).ContinueWith(t => { throw t.Exception; },
+                        TaskContinuationOptions.OnlyOnFaulted);
 
                     break;
                 default:
