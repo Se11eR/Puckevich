@@ -255,7 +255,6 @@ namespace PuckevichCore
         {
             StopInternal();
             WhenStopped();
-            
         }
 
         public async Task StopAsync()

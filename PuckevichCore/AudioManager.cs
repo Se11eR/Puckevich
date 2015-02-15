@@ -53,11 +53,8 @@ namespace PuckevichCore
                                                        {
                                                            if (playable.State == PlayingState.Playing)
                                                                __OpenedChannels.Add(playable);
-                                                           else if (playable.State == PlayingState.Paused
-                                                                   || playable.State == PlayingState.Stopped)
-                                                           {
+                                                           else if (playable.State == PlayingState.Stopped)
                                                                __OpenedChannels.Remove(playable);
-                                                           }
                                                        }
                                                    });
 
