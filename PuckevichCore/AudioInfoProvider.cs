@@ -10,18 +10,23 @@ namespace PuckevichCore
 {
     internal class AudioInfoProvider : IItemsProvider<IAudio>
     {
-        private readonly VkApi __Api;
-        private readonly AudioInfoFactory __InfoFactory;
-
         private const int QUERY_TIME_THRESHOLD = 333;
+
         private static readonly Stopwatch __QueryWatch = new Stopwatch();
         private static object __Lock = new object();
         private static int __WholeCount;
 
-        public AudioInfoProvider(VkApi api, AudioInfoFactory infoFactory)
+        private readonly VkApi __Api;
+        private readonly AudioInfoFactory __InfoFactory;
+        private readonly PlayingStateChangedEventHandler __OptionalStateChangedHandler;
+
+        public AudioInfoProvider(VkApi api,
+                                 AudioInfoFactory infoFactory,
+                                 PlayingStateChangedEventHandler optionalStateChangedHandler = null)
         {
             __Api = api;
             __InfoFactory = infoFactory;
+            __OptionalStateChangedHandler = optionalStateChangedHandler;
         }
 
         private IEnumerable<VkNet.Model.Attachments.Audio> GetAudiosFromApi(int offset, int count)
@@ -65,7 +70,13 @@ namespace PuckevichCore
             list.AddRange(vkAudios.Select(audio =>
             {
                 var b = new UriBuilder("http", audio.Url.Host, 80, audio.Url.AbsolutePath);
-                return __InfoFactory.Create(audio.Id, __Api.UserId.Value, audio.Title, audio.Artist, audio.Duration, b.Uri);
+                return __InfoFactory.Create(audio.Id,
+                                            __Api.UserId.Value,
+                                            audio.Title,
+                                            audio.Artist,
+                                            audio.Duration,
+                                            b.Uri,
+                                            __OptionalStateChangedHandler);
             }));
 
             return list;

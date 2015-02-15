@@ -12,14 +12,13 @@ namespace PuckevichCore
         internal AudioPlayableMediator(IAudioStorage storage, IWebDownloader downloader, IAudio audio, Uri url)
         {
             __InternalAudioPlayable = new AudioPlayable(audio, storage, downloader, url);
-            __InternalAudioPlayable.PlayingStateChanged += playable => OnPlayingStateChanged();
         }
 
         private void OnPlayingStateChanged()
         {
             var handler = PlayingStateChanged;
             if (handler != null)
-                handler(AudioPlayable);
+                handler(this);
         }
 
         private void CheckInit()
@@ -46,8 +45,9 @@ namespace PuckevichCore
             if (__InternalAudioPlayable.State != PlayingState.Playing)
             {
                 __InternalAudioPlayable.Play();
-                AudioManager.Instance.OpenedChannels.Add(__InternalAudioPlayable);
+                OnPlayingStateChanged();
             }
+            
         }
 
         public void Pause()
@@ -57,7 +57,7 @@ namespace PuckevichCore
             if (__InternalAudioPlayable.State != PlayingState.Paused && __InternalAudioPlayable.State != PlayingState.NotInit)
             {
                 __InternalAudioPlayable.Pause();
-                AudioManager.Instance.OpenedChannels.Add(__InternalAudioPlayable);
+                OnPlayingStateChanged();
             }
         }
 
@@ -68,7 +68,7 @@ namespace PuckevichCore
             if (__InternalAudioPlayable.State != PlayingState.Stopped && __InternalAudioPlayable.State != PlayingState.NotInit)
             {
                 __InternalAudioPlayable.Stop();
-                AudioManager.Instance.OpenedChannels.Remove(__InternalAudioPlayable);
+                OnPlayingStateChanged();
             }
         }
 
@@ -79,7 +79,7 @@ namespace PuckevichCore
             if (__InternalAudioPlayable.State != PlayingState.Stopped && __InternalAudioPlayable.State != PlayingState.NotInit)
             {
                 await __InternalAudioPlayable.StopAsync();
-                AudioManager.Instance.OpenedChannels.Remove(__InternalAudioPlayable);
+                OnPlayingStateChanged();
             }
         }
 
@@ -91,7 +91,7 @@ namespace PuckevichCore
             }
         }
 
-        public event PlayingStateChangedEvent PlayingStateChanged;
+        public event PlayingStateChangedEventHandler PlayingStateChanged;
 
         public int SecondsPlayed
         {
@@ -104,11 +104,6 @@ namespace PuckevichCore
         public PlayingState State
         {
             get { return __InternalAudioPlayable.State; }
-        }
-
-        public IManagedPlayable AudioPlayable
-        {
-            get { return __InternalAudioPlayable; }
         }
 
         public void Init()

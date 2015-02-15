@@ -14,9 +14,21 @@ namespace PuckevichCore
             __Downloader = downloader;
         }
 
-        public IAudio Create(long audioId, long userId, string title, string artist, int duration, Uri url)
+        public IAudio Create(long audioId,
+                             long userId,
+                             string title,
+                             string artist,
+                             int duration,
+                             Uri url,
+                             PlayingStateChangedEventHandler handler = null)
         {
-            return new AudioInfo(__Storage, __Downloader, audioId, userId, title, artist, duration, url);
+            var info = new AudioInfo(__Storage, __Downloader, audioId, userId, title, artist, duration, url);
+
+            if (handler != null)
+            {
+                info.Playable.PlayingStateChanged += handler;
+            }
+            return info;
         }
     }
 }

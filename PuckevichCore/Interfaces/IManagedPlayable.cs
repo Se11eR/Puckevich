@@ -2,7 +2,7 @@
 
 namespace PuckevichCore
 {
-    public delegate void PlayingStateChangedEvent(IManagedPlayable sender);
+    public delegate void PlayingStateChangedEventHandler(IManagedPlayable sender);
 
     public interface IManagedPlayable
     {
@@ -23,7 +23,7 @@ namespace PuckevichCore
 
         double Downloaded { get; }
 
-        event PlayingStateChangedEvent PlayingStateChanged;
+        event PlayingStateChangedEventHandler PlayingStateChanged;
 
         PlayingState State { get; }
     }
