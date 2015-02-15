@@ -7,7 +7,6 @@ namespace PuckevichCore
     internal class AudioPlayableMediator : IManagedPlayable
     {
         private readonly AudioPlayable __InternalAudioPlayable;
-        private bool __IsInitialized;
 
         internal AudioPlayableMediator(IAudioStorage storage, IWebDownloader downloader, IAudio audio, Uri url)
         {
@@ -23,18 +22,9 @@ namespace PuckevichCore
 
         private void CheckInit()
         {
-            if (!__IsInitialized || __InternalAudioPlayable.State == PlayingState.Stopped)
+            if (__InternalAudioPlayable.State == PlayingState.NotInit)
             {
                 throw new ApplicationException("AudioPlayableMediator was not initialized!");
-            }
-        }
-
-        private async Task CheckAndInitAsync()
-        {
-            if (!__IsInitialized || __InternalAudioPlayable.State == PlayingState.Stopped)
-            {
-                await __InternalAudioPlayable.InitAsync();
-                __IsInitialized = true;
             }
         }
 
@@ -47,7 +37,6 @@ namespace PuckevichCore
                 __InternalAudioPlayable.Play();
                 OnPlayingStateChanged();
             }
-            
         }
 
         public void Pause()
@@ -74,7 +63,7 @@ namespace PuckevichCore
 
         public async Task StopAsync()
         {
-            await CheckAndInitAsync();
+            CheckInit();
 
             if (__InternalAudioPlayable.State != PlayingState.Stopped && __InternalAudioPlayable.State != PlayingState.NotInit)
             {
@@ -108,14 +97,12 @@ namespace PuckevichCore
 
         public void Init()
         {
-            __IsInitialized = true;
             __InternalAudioPlayable.Init();
         }
 
         public async Task InitAsync()
         {
             await __InternalAudioPlayable.InitAsync();
-            __IsInitialized = true;
         }
     }
 }

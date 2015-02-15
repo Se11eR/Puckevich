@@ -62,9 +62,7 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
 
-            __PlayingStopwatch.Reset();
-            __WebHandle.Set();
-            __WebHandle.Reset();
+            StopActions();
         }
 
         private void WhenStopped()
@@ -82,6 +80,13 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
 
+            StopActions();
+        }
+
+        private void StopActions()
+        {
+            __CacheStream.Dispose();
+            __CacheStream = null;
             __PlayingStopwatch.Reset();
             __WebHandle.Set();
             __WebHandle.Reset();
@@ -195,13 +200,7 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
 
-            __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
-                                                          BASSFlag.BASS_DEFAULT,
-                                                          __BASSFileProcs,
-                                                          IntPtr.Zero);
-            if (__BassStream == 0)
-                Error.HandleBASSError("BASS_StreamCreateFileUser");
-            Bass.BASS_ChannelSetSync(__BassStream, BASSSync.BASS_SYNC_END, 0, __EndStreamProc, IntPtr.Zero);
+            InitActions();
         }
 
         public async Task InitAsync()
@@ -226,6 +225,11 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
 
+            InitActions();
+        }
+
+        private void InitActions()
+        {
             __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
                                                           BASSFlag.BASS_DEFAULT,
                                                           __BASSFileProcs,
@@ -233,6 +237,7 @@ namespace PuckevichCore
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
             Bass.BASS_ChannelSetSync(__BassStream, BASSSync.BASS_SYNC_END, 0, __EndStreamProc, IntPtr.Zero);
+            __PlayingState = PlayingState.Stopped;
         }
 
         public void Play()
@@ -300,6 +305,7 @@ namespace PuckevichCore
             }
             if (__ProducerConsumerStream != null)
                 __ProducerConsumerStream.Dispose();
+
             if(__CacheStream != null)
                 __CacheStream.Dispose();
         }

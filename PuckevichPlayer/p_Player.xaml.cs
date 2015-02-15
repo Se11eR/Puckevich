@@ -27,6 +27,7 @@ namespace PuckevichPlayer
     public partial class p_Player : Page, INotifyPropertyChanged
     {
         private IList<AudioModel> __List;
+        private AudioModel __CurrentActive;
 
         public p_Player(IList<AudioModel> list)
         {
@@ -67,6 +68,44 @@ namespace PuckevichPlayer
                 return;
 
             await audioModel.AudioEntryClicked();
+            if (__CurrentActive == null)
+            {
+                __CurrentActive = audioModel;
+                return;
+            }
+
+            if (__CurrentActive != audioModel)
+            {
+                switch (audioModel.AudioState)
+                {
+                    case PlayingState.NotInit:
+                        break;
+                    case PlayingState.Stopped:
+                        break;
+                    case PlayingState.Paused:
+                        await __CurrentActive.StopAsync();
+                        __CurrentActive = audioModel;
+                        break;
+                    case PlayingState.Playing:
+                        await __CurrentActive.StopAsync();
+                        __CurrentActive = audioModel;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            else
+            {
+                switch (audioModel.AudioState)
+                {
+                    case PlayingState.NotInit:
+                        __CurrentActive = null;
+                        break;
+                    case PlayingState.Stopped:
+                        __CurrentActive = null;
+                        break;
+                }
+            }
         }
     }
 }

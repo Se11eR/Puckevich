@@ -104,6 +104,14 @@ namespace PuckevichPlayer
             }
         }
 
+        public async Task StopAsync()
+        {
+            if (__Playable.State != PlayingState.Stopped)
+            {
+                await __Playable.StopAsync();
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
