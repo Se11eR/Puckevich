@@ -55,6 +55,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Pages\p_Start.xaml.cs">
+      <DependentUpon>p_Start.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Virtualizing\AsyncVirtualizingCollection.cs" />
     <Compile Include="AudioModel.cs" />
     <Compile Include="AudioModelProviderWrapper.cs" />
@@ -65,7 +68,7 @@
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Converters\IntToDurationConverter.cs" />
     <Compile Include="Storage\JsonModel.cs" />
-    <Compile Include="p_Player.xaml.cs">
+    <Compile Include="Pages\p_Player.xaml.cs">
       <DependentUpon>p_Player.xaml</DependentUpon>
     </Compile>
     <Compile Include="Storage\CacheStorage.cs" />
@@ -87,7 +90,11 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="p_Player.xaml">
+    <Page Include="Pages\p_Player.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\p_Start.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

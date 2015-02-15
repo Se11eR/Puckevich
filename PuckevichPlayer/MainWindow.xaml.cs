@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -9,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using PuckevichPlayer.Pages;
 using PuckevichPlayer.Storage;
 using PuckevichCore;
 using PuckevichPlayer.Virtualizing;
@@ -27,27 +29,34 @@ namespace PuckevichPlayer
         {
             InitializeComponent();
 
-            string email = "vkontakt232@gmail.com";
-            string pass = "ohmaniwillneverforgiveyourassforthisshit";
+            Content = new p_Start();
+        }
 
+        private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        {
             var storage = new CacheStorage();
-            storage.Initialize();
             var web = new WedDownloader();
 
-            AudioManager.Instance.Init(email, pass, storage, web);
-            IItemsProvider<IAudio> audioProvider = AudioManager.Instance.AudioInfoProvider;
-            var virtualizingCollection = new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(audioProvider),
-                                                                                        PAGE_SIZE,
-                                                                                        PAGE_TIMEOUT);
+            await Task.Run(() =>
+            {
+                storage.Initialize();
+                AudioManager.Instance.Init(email, pass, storage, web);
+                
+            });
 
-            Content = new p_Player(virtualizingCollection);
-            Closed += (sender, args) =>
+            IItemsProvider<IAudio> audioProvider = AudioManager.Instance.AudioInfoProvider;
+            var collection =
+                new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(audioProvider),
+                                                            PAGE_SIZE,
+                                                            PAGE_TIMEOUT);
+            Closed += (x, y) =>
             {
                 AudioManager.Instance.Dispose();
                 storage.Dispose();
             };
-        }
 
+            Content = new p_Player(collection);
+        }
 
         static void DownloadFile(string sourceUrl, string destinationPath)
         {
@@ -88,6 +97,8 @@ namespace PuckevichPlayer
             {
                 saveFileStream.Write(downBuffer, 0, iByteSize);
             }
-        }  
+        }
+
+        
     }
 }
