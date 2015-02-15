@@ -9,21 +9,21 @@ namespace PuckevichPlayer
 {
     public class AudioModelProviderWrapper : IItemsProvider<AudioModel>
     {
-        private readonly IItemsProvider<IAudio> __InternalProvide;
+        private readonly IItemsProvider<IAudio> __InternalProvider;
 
-        public AudioModelProviderWrapper(IItemsProvider<IAudio> internalProvide)
+        public AudioModelProviderWrapper(IItemsProvider<IAudio> internalProvider)
         {
-            __InternalProvide = internalProvide;
+            __InternalProvider = internalProvider;
         }
 
         public int FetchCount()
         {
-            return __InternalProvide.FetchCount();
+            return __InternalProvider.FetchCount();
         }
 
         public IList<AudioModel> FetchRange(int startIndex, int count)
         {
-            return __InternalProvide.FetchRange(startIndex, count).Select(audio => new AudioModel(audio)).ToList();
+            return __InternalProvider.FetchRange(startIndex, count).Select(audio => new AudioModel(audio)).ToList();
         }
     }
 }

@@ -7,27 +7,27 @@ using VkNet.Enums.Filters;
 
 namespace PuckevichCore
 {
-    public class VkAudioManager: IDisposable
+    public class AudioManager: IDisposable
     {
         private static readonly Object __SingletoneLock = new Object();
-        private static VkAudioManager __Instance;
+        private static AudioManager __Instance;
 
         private const int APP_ID = 4544915;
-        private VkAudioProvider __List;
+        private AudioInfoProvider __InfoProvider;
         internal readonly ISet<IManagedPlayable> OpenedChannels = new HashSet<IManagedPlayable>();
 
-        private VkAudioManager()
+        private AudioManager()
         {
             
         }
 
-        public static VkAudioManager Instance
+        public static AudioManager Instance
         {
             get
             {
                 if (__Instance != null) return __Instance;
                 Monitor.Enter(__SingletoneLock);
-                var temp = new VkAudioManager();
+                var temp = new AudioManager();
                 Interlocked.Exchange(ref __Instance, temp);
                 Monitor.Exit(__SingletoneLock);
                 return __Instance;
@@ -38,7 +38,7 @@ namespace PuckevichCore
         {
             var api = new VkApi();
             api.Authorize(APP_ID, email, password, Settings.Audio);
-            __List = new VkAudioProvider(api, new VkAudioFactory(storage, downloader));
+            __InfoProvider = new AudioInfoProvider(api, new AudioInfoFactory(storage, downloader));
 
             if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
             {
@@ -46,9 +46,9 @@ namespace PuckevichCore
             }
         }
 
-        public IItemsProvider<IAudio> AudioProvider
+        public IItemsProvider<IAudio> AudioInfoProvider
         {
-            get { return __List; }
+            get { return __InfoProvider; }
         }
 
         public void Dispose()

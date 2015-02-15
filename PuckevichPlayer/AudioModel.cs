@@ -87,16 +87,16 @@ namespace PuckevichPlayer
 
             switch (__Playable.State)
             {
-                case PuckevichCore.PlayingState.NotInit:
+                case PlayingState.NotInit:
                     __Playable.Play();
                     break;
-                case PuckevichCore.PlayingState.Stopped:
+                case PlayingState.Stopped:
                     __Playable.Play();
                     break;
-                case PuckevichCore.PlayingState.Paused:
+                case PlayingState.Paused:
                     __Playable.Play();
                     break;
-                case PuckevichCore.PlayingState.Playing:
+                case PlayingState.Playing:
                     __Playable.Pause();
                     break;
                 default:

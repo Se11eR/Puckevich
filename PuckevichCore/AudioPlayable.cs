@@ -11,12 +11,12 @@ using Un4seen.Bass;
 namespace PuckevichCore
 {
 
-    internal class PlayableAudio : IManagedPlayable
+    internal class AudioPlayable : IManagedPlayable
     {
         private readonly BASS_FILEPROCS __BASSFileProcs;
         private readonly SYNCPROC __EndStreamProc;
 
-        private readonly VkAudio __Audio;
+        private readonly IAudio __Audio;
         private readonly IAudioStorage __Storage;
         private readonly EventWaitHandle __WebHandle = new AutoResetEvent(false);
         private readonly IWebDownloader __Downloader;
@@ -28,7 +28,7 @@ namespace PuckevichCore
         private double __PercentsDownloaded;
         private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
 
-        internal PlayableAudio(VkAudio audio, IAudioStorage storage, IWebDownloader downloader, Uri url)
+        internal AudioPlayable(IAudio audio, IAudioStorage storage, IWebDownloader downloader, Uri url)
         {
             __Audio = audio;
             __Storage = storage;
@@ -315,11 +315,11 @@ namespace PuckevichCore
             }
         }
 
-        ~PlayableAudio()
+        ~AudioPlayable()
         {
             if (PlayingState != PlayingState.Stopped && PlayingState != PlayingState.NotInit)
             {
-                throw new ApplicationException("This PlayableAudio was not stoppped before destruction!");
+                throw new ApplicationException("This AudioPlayable was not stoppped before destruction!");
             }
 
             Bass.BASS_StreamFree(__BassStream);

@@ -102,21 +102,22 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudioInfo.cs" />
     <Compile Include="DataVirtualization\IItemsProvider.cs" />
     <Compile Include="Error.cs" />
-    <Compile Include="IAudio.cs" />
-    <Compile Include="ICacheStream.cs" />
-    <Compile Include="IManagedPlayable.cs" />
-    <Compile Include="IAudioStorage.cs" />
-    <Compile Include="IWebDownloader.cs" />
-    <Compile Include="PlayableAudio.cs" />
+    <Compile Include="Interfaces\IAudio.cs" />
+    <Compile Include="Interfaces\ICacheStream.cs" />
+    <Compile Include="Interfaces\IManagedPlayable.cs" />
+    <Compile Include="Interfaces\IAudioStorage.cs" />
+    <Compile Include="Interfaces\IWebDownloader.cs" />
+    <Compile Include="AudioPlayable.cs" />
     <Compile Include="PlayingState.cs" />
     <Compile Include="ProducerConsumerMemoryStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VkAudioFactory.cs" />
-    <Compile Include="VkAudioManager.cs" />
-    <Compile Include="VkAudio.cs" />
-    <Compile Include="VkAudioProvider.cs" />
+    <Compile Include="AudioInfoFactory.cs" />
+    <Compile Include="AudioManager.cs" />
+    <Compile Include="AudioPlayableMediator.cs" />
+    <Compile Include="AudioInfoProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

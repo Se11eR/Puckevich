@@ -8,35 +8,36 @@ using VkNet.Model.Attachments;
 
 namespace PuckevichCore
 {
-    internal class VkAudioProvider : IItemsProvider<IAudio>
+    internal class AudioInfoProvider : IItemsProvider<IAudio>
     {
         private readonly VkApi __Api;
-        private readonly VkAudioFactory __Factory;
+        private readonly AudioInfoFactory __InfoFactory;
 
-        private const int __QueryTimeThreshold = 333;
+        private const int QUERY_TIME_THRESHOLD = 333;
         private static readonly Stopwatch __QueryWatch = new Stopwatch();
         private static object __Lock = new object();
         private static int __WholeCount;
 
-        public VkAudioProvider(VkApi api, VkAudioFactory factory)
+        public AudioInfoProvider(VkApi api, AudioInfoFactory infoFactory)
         {
             __Api = api;
-            __Factory = factory;
+            __InfoFactory = infoFactory;
         }
 
-        private IEnumerable<Audio> GetAudiosFromApi(int offset, int count)
+        private IEnumerable<VkNet.Model.Attachments.Audio> GetAudiosFromApi(int offset, int count)
         {
             lock (__Lock)
             {
-                if (__QueryWatch.ElapsedMilliseconds < 333)
+                if (__QueryWatch.ElapsedMilliseconds < QUERY_TIME_THRESHOLD)
                 {
-                    Thread.Sleep(__QueryTimeThreshold);
+                    Thread.Sleep(QUERY_TIME_THRESHOLD);
                 }
                 __QueryWatch.Restart();
             
                 var audios = __Api.Audio.Get(__Api.UserId.Value, null, null, count, offset);
                 //Далее идет невероятный баг API вконтакте
-                //иногда оно возвращает не то кол-ов записей, которое запросили (тестировал прямо на https://vk.com/dev/audio.get их родным тестером)
+                //иногда оно возвращает не то кол-ов записей, которое запросили 
+                //(тестировал прямо на https://vk.com/dev/audio.get их родным тестером)
                 while (audios.Count < count)
                 {
                     var difference = count - audios.Count;
@@ -46,7 +47,7 @@ namespace PuckevichCore
                         newCount = __WholeCount - offset;
                     }
                     audios = __Api.Audio.Get(__Api.UserId.Value, null, null, newCount, offset);
-                    Thread.Sleep(__QueryTimeThreshold);
+                    Thread.Sleep(QUERY_TIME_THRESHOLD);
                 }
                 return audios;
             }
@@ -64,7 +65,7 @@ namespace PuckevichCore
             list.AddRange(vkAudios.Select(audio =>
             {
                 var b = new UriBuilder("http", audio.Url.Host, 80, audio.Url.AbsolutePath);
-                return __Factory.Create(audio.Id, __Api.UserId.Value, audio.Title, audio.Artist, audio.Duration, b.Uri);
+                return __InfoFactory.Create(audio.Id, __Api.UserId.Value, audio.Title, audio.Artist, audio.Duration, b.Uri);
             }));
 
             return list;

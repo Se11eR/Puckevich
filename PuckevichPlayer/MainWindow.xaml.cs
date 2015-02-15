@@ -27,13 +27,15 @@ namespace PuckevichPlayer
         {
             InitializeComponent();
 
+            string email = "vkontakt232@gmail.com";
+            string pass = "ohmaniwillneverforgiveyourassforthisshit";
 
             var storage = new CacheStorage();
             storage.Initialize();
             var web = new WedDownloader();
 
-            VkAudioManager.Instance.Init(email, pass, storage, web);
-            IItemsProvider<IAudio> audioProvider = VkAudioManager.Instance.AudioProvider;
+            AudioManager.Instance.Init(email, pass, storage, web);
+            IItemsProvider<IAudio> audioProvider = AudioManager.Instance.AudioInfoProvider;
             var virtualizingCollection = new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(audioProvider),
                                                                                         PAGE_SIZE,
                                                                                         PAGE_TIMEOUT);
@@ -41,7 +43,7 @@ namespace PuckevichPlayer
             Content = new p_Player(virtualizingCollection);
             Closed += (sender, args) =>
             {
-                VkAudioManager.Instance.Dispose();
+                AudioManager.Instance.Dispose();
                 storage.Dispose();
             };
         }
