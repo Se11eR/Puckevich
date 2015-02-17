@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:cont="clr-namespace:PuckevichPlayer.Controls"
       mc:Ignorable="d" 
-      d:DesignHeight="300" d:DesignWidth="300"
+      d:DesignHeight="850" d:DesignWidth="478"
 	  Title="p_Player">
     <Page.Resources>
         <DataTemplate x:Key="MetroListBoxItem">
@@ -13,7 +13,7 @@
         </DataTemplate>
         <Style TargetType="ListBoxItem" x:Key="MetroListBoxItemStyle">
             <Setter Property="SnapsToDevicePixels" Value="True"/>
-            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="Padding" Value="0 1 4 1"/>
             <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource FindAncestor,AncestorType={x:Type ItemsControl}}}"/>
             <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"/>
             <Setter Property="Background" Value="Transparent"/>

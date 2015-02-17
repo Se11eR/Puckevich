@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,6 +26,8 @@ namespace PuckevichPlayer
         private const int PAGE_SIZE = 100;
         private const int PAGE_TIMEOUT = 1000 * 60; //1 minute
 
+        private CacheStorage __Storage;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -32,15 +35,21 @@ namespace PuckevichPlayer
             Content = new p_Start();
         }
 
+        private void OnClosed(object sender, EventArgs args)
+        {
+            AudioManager.Instance.Dispose();
+            __Storage.Dispose();
+        }
+
         private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
-            var storage = new CacheStorage();
+            __Storage = new CacheStorage();
             var web = new WedDownloader();
 
             await Task.Run(() =>
             {
-                storage.Initialize();
-                AudioManager.Instance.Init(email, pass, storage, web);
+                __Storage.Initialize();
+                AudioManager.Instance.Init(email, pass, __Storage, web);
                 
             });
 
@@ -49,56 +58,7 @@ namespace PuckevichPlayer
                 new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(audioProvider),
                                                             PAGE_SIZE,
                                                             PAGE_TIMEOUT);
-            Closed += (x, y) =>
-            {
-                AudioManager.Instance.Dispose();
-                storage.Dispose();
-            };
-
             Content = new p_Player(collection);
         }
-
-        static void DownloadFile(string sourceUrl, string destinationPath)
-        {
-            long iFileSize = 0;
-            int iBufferSize = 1024;
-            iBufferSize *= 1000;
-            long iExistLen = 0;
-            System.IO.FileStream saveFileStream;
-            if (System.IO.File.Exists(destinationPath))
-            {
-                System.IO.FileInfo fINfo =
-                   new System.IO.FileInfo(destinationPath);
-                iExistLen = fINfo.Length;
-            }
-            if (iExistLen > 0)
-                saveFileStream = new System.IO.FileStream(destinationPath,
-                  System.IO.FileMode.Append, System.IO.FileAccess.Write,
-                  System.IO.FileShare.ReadWrite);
-            else
-                saveFileStream = new System.IO.FileStream(destinationPath,
-                  System.IO.FileMode.Create, System.IO.FileAccess.Write,
-                  System.IO.FileShare.ReadWrite);
-
-            System.Net.HttpWebRequest hwRq;
-            System.Net.HttpWebResponse hwRes;
-            hwRq = (System.Net.HttpWebRequest)System.Net.HttpWebRequest.Create(sourceUrl);
-            hwRq.AddRange((int)iExistLen);
-            System.IO.Stream smRespStream;
-            hwRes = (System.Net.HttpWebResponse)hwRq.GetResponse();
-            smRespStream = hwRes.GetResponseStream();
-
-            iFileSize = hwRes.ContentLength;
-
-            int iByteSize;
-            byte[] downBuffer = new byte[iBufferSize];
-
-            while ((iByteSize = smRespStream.Read(downBuffer, 0, downBuffer.Length)) > 0)
-            {
-                saveFileStream.Write(downBuffer, 0, iByteSize);
-            }
-        }
-
-        
     }
 }

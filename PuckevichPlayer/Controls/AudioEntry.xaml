@@ -4,8 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:conv="clr-namespace:PuckevichPlayer.Converters"
+             xmlns:sampleData="clr-namespace:PuckevichPlayer.Controls.SampleData"
              mc:Ignorable="d" 
+             Padding="10 0 0 0"
+             d:DataContext="{Binding Source={StaticResource MockAudioModel}}"
              d:DesignWidth="478">
+    <UserControl.Resources>
+        <sampleData:MockAudioModel x:Key="MockAudioModel"/>
+        <conv:TimePlayedAndDurationToRatioWidthConverter x:Key="TimePlayedAndDurationToRatioWidthConverter" />
+    </UserControl.Resources>
     <UserControl.Style>
         <Style TargetType="UserControl">
             <Setter Property="Background" Value="Transparent"></Setter>
@@ -19,96 +26,129 @@
             </Style.Triggers>
         </Style>
     </UserControl.Style>
-    <Border BorderThickness="0 0 0 1" BorderBrush="{StaticResource ThatLightGrayColorBrush}" Margin="8 0 0 0">
-        <Grid>
-            <Grid.Resources>
-                <conv:IntToDurationConverter x:Key="IntToDurationConverter" />
-                <Style TargetType="TextBlock" x:Key="AudioNameText">
-                    <Setter Property="FontFamily" Value="Segoe UI"/>
-                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                    <Setter Property="FontSize" Value="25"/>
+    <Grid>
+        <Border HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-12 0 0 0">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="Transparent"></Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding AudioState}" Value="Playing">
+                            <Setter Property="Background" Value="Black"></Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
                 </Style>
-                <Style TargetType="FrameworkElement" x:Key="RightThing">
-                    <Setter Property="Margin" Value="4 0 8 0"/>
-                    <Setter Property="VerticalAlignment" Value="Center"/>
-                    <Setter Property="HorizontalAlignment" Value="Center"/>
+            </Border.Style>
+        </Border>
+        <Border HorizontalAlignment="Left" 
+                Margin="-6 0 0 0"
+                BorderThickness="0" VerticalAlignment="Stretch" Background="{StaticResource ThatLightGrayColorBrush}">
+            <Border.Style>
+                <Style TargetType="FrameworkElement">
+                    <Setter Property="Width">
+                        <Setter.Value>
+                            <MultiBinding Converter="{StaticResource TimePlayedAndDurationToRatioWidthConverter}">
+                                <Binding Path="TimePlayed"/>
+                                <Binding Path="Duration" />
+                                <Binding Path="ActualWidth" RelativeSource="{RelativeSource Mode=FindAncestor,
+                                                     AncestorType=UserControl}"/>
+                            </MultiBinding>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
-            </Grid.Resources>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition Width="100"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="{Binding Title}"
+            </Border.Style>
+        </Border>
+        <Border BorderThickness="0 0 0 1" 
+                BorderBrush="{StaticResource ThatLightGrayColorBrush}">
+            <Grid>
+                <Grid.Resources>
+                    <conv:IntToDurationConverter x:Key="IntToDurationConverter" />
+                    <Style TargetType="TextBlock" x:Key="AudioNameText">
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                        <Setter Property="FontSize" Value="25"/>
+                    </Style>
+                    <Style TargetType="FrameworkElement" x:Key="RightThing">
+                        <Setter Property="Margin" Value="4 0 8 0"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                    </Style>
+                </Grid.Resources>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Title}"
                        Margin="0 4 0 -1"
                        FontWeight="SemiBold"
                        Style="{StaticResource AudioNameText}" />
-            <TextBlock Grid.Row="1" Grid.Column="0" 
+                <TextBlock Grid.Row="1" Grid.Column="0" 
                        Text="{Binding Artist}"
                        Margin="0 -1 0 4"
                        FontSize="20"
                        Style="{StaticResource AudioNameText}" />
-            <ContentControl Grid.Row="0" 
+                <ContentControl Grid.Row="0" 
                             Grid.RowSpan="2" 
                             Grid.Column="1">
-                <ContentControl.Style>
-                    <Style BasedOn="{StaticResource RightThing}" TargetType="ContentControl">
-                        <Setter Property="Template" Value="{x:Null}" />
-                        <Setter Property="Visibility" Value="Collapsed"></Setter>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding AudioState}" Value="Playing">
-                                <Setter Property="Visibility" Value="Visible"></Setter>
-                                <Setter Property="Template" Value="{StaticResource MediaMusic}" />
-                                <Setter Property="Width" Value="100"></Setter>
-                                <Setter Property="LayoutTransform">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="0.4"
+                    <ContentControl.Style>
+                        <Style BasedOn="{StaticResource RightThing}" TargetType="ContentControl">
+                            <Setter Property="Template" Value="{x:Null}" />
+                            <Setter Property="Visibility" Value="Collapsed"></Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding AudioState}" Value="Playing">
+                                    <Setter Property="Visibility" Value="Visible"></Setter>
+                                    <Setter Property="Template" Value="{StaticResource MediaMusic}" />
+                                    <Setter Property="Width" Value="100"></Setter>
+                                    <Setter Property="LayoutTransform">
+                                        <Setter.Value>
+                                            <ScaleTransform ScaleX="0.4"
                                                         ScaleY="0.4"
                                                         CenterX="0" 
                                                         CenterY="0" />
-                                    </Setter.Value>
-                                </Setter>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding AudioState}" Value="Paused">
-                                <Setter Property="Visibility" Value="Visible"></Setter>
-                                <Setter Property="Template" Value="{StaticResource MediaPause}" />
-                                <Setter Property="Width" Value="100"></Setter>
-                                <Setter Property="LayoutTransform">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="0.3"
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AudioState}" Value="Paused">
+                                    <Setter Property="Visibility" Value="Visible"></Setter>
+                                    <Setter Property="Template" Value="{StaticResource MediaPause}" />
+                                    <Setter Property="Width" Value="100"></Setter>
+                                    <Setter Property="LayoutTransform">
+                                        <Setter.Value>
+                                            <ScaleTransform ScaleX="0.3"
                                                         ScaleY="0.3"
                                                         CenterX="0" 
                                                         CenterY="0" />
-                                    </Setter.Value>
-                                </Setter>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </ContentControl.Style>
-            </ContentControl>
-            <TextBlock Grid.Row="0" 
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContentControl.Style>
+                </ContentControl>
+                <TextBlock Grid.Row="0" 
                        Grid.RowSpan="2" 
                        Grid.Column="1"
                        Text="{Binding Duration, Converter={StaticResource IntToDurationConverter}}"
                        FontSize="25"
                        Foreground="{StaticResource ThatGrayColorBrush}">
-                <TextBlock.Style>
-                    <Style BasedOn="{StaticResource RightThing}" TargetType="TextBlock">
-                        <Setter Property="Visibility" Value="Collapsed"></Setter>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding AudioState}" Value="Stopped">
-                                <Setter Property="Visibility" Value="Visible"></Setter>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding AudioState}" Value="NotInit">
-                                <Setter Property="Visibility" Value="Visible"></Setter>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
-        </Grid>
-    </Border>
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource RightThing}" TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"></Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding AudioState}" Value="Stopped">
+                                    <Setter Property="Visibility" Value="Visible"></Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AudioState}" Value="NotInit">
+                                    <Setter Property="Visibility" Value="Visible"></Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>

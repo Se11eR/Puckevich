@@ -25,8 +25,10 @@ namespace PuckevichCore
         private ProducerConsumerMemoryStream __ProducerConsumerStream;
         private PlayingState __PlayingState = PlayingState.NotInit;
         private int __BassStream;
-        private double __PercentsDownloaded;
+        private double __DownloadedFracion;
         private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
+
+        public event Action DownloadedFracionChanged;
 
         internal AudioPlayable(IAudio audio, IAudioStorage storage, IWebDownloader downloader, Uri url)
         {
@@ -45,6 +47,13 @@ namespace PuckevichCore
                 __PlayingState = PlayingState.Stopped;
                 WhenStopped();
             };
+        }
+
+        private void OnDownloadedFracionChanged()
+        {
+            var handler = DownloadedFracionChanged;
+            if (handler != null)
+                handler();
         }
 
         private async Task WhenStoppedAsync()
@@ -124,14 +133,15 @@ namespace PuckevichCore
             {
                 blockRead += lengthRead;
                 __ProducerConsumerStream.Write(buffer, 0, lengthRead);
-
+                
                 if (blockRead >= BUFFER_SIZE)
                 {
                     blockRead = 0;
                     __WebHandle.Set();
                 }
 
-                __PercentsDownloaded = (double)__ProducerConsumerStream.WritePosition / __CacheStream.AudioSize;
+                __DownloadedFracion = (double)__ProducerConsumerStream.WritePosition / __CacheStream.AudioSize;
+                OnDownloadedFracionChanged();
 
                 if (__PlayingState == PlayingState.Stopped)
                     return;
@@ -268,16 +278,16 @@ namespace PuckevichCore
             await WhenStoppedAsync();
         }
 
-        public double Downloaded
+        public double DownloadedFracion
         {
-            get { return __PercentsDownloaded; }
+            get { return __DownloadedFracion; }
         }
 
         public int SecondsPlayed
         {
             get
             {
-                return __PlayingStopwatch.Elapsed.Seconds;
+                return (int)Math.Round(__PlayingStopwatch.Elapsed.TotalSeconds);
             }
         }
 

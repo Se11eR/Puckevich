@@ -22,7 +22,10 @@ namespace PuckevichPlayer
         {
             __InternalAudio = internalAudio;
             __Playable = __InternalAudio.Playable;
+
             __InternalAudio.Playable.PlayingStateChanged += sender => AudioState = sender.State;
+            __InternalAudio.Playable.PercentsDownloadedChanged += sender => Downloaded = sender.PercentsDownloaded;
+            __InternalAudio.Playable.SecondsPlayedChanged += sender => TimePlayed = sender.SecondsPlayed;
         }
 
         public string Title
@@ -62,11 +65,17 @@ namespace PuckevichPlayer
             }
         }
 
-        public string TimePlayed
+        public int TimePlayed
         {
             get
             {
-                return new DateTime().AddSeconds(__Playable.SecondsPlayed).ToString("mm:ss");
+                //new DateTime().AddSeconds(__TimePlayed).ToString("mm:ss");
+                return __TimePlayed;
+            }
+            private set
+            {
+                __TimePlayed = value;
+                OnPropertyChanged();
             }
         }
 
@@ -74,7 +83,12 @@ namespace PuckevichPlayer
         {
             get
             {
-                return __Playable.Downloaded;
+                return __Downloaded;
+            }
+            private set
+            {
+                __Downloaded = value;
+                OnPropertyChanged();
             }
         }
 

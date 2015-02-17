@@ -3,6 +3,8 @@
 namespace PuckevichCore
 {
     public delegate void PlayingStateChangedEventHandler(IManagedPlayable sender);
+    public delegate void PercentsDownloadedChangedEventHandler(IManagedPlayable sender);
+    public delegate void SecondsPlayedChangedEventHandler(IManagedPlayable sender);
 
     public interface IManagedPlayable
     {
@@ -21,9 +23,11 @@ namespace PuckevichCore
 
         int SecondsPlayed { get; }
 
-        double Downloaded { get; }
+        double PercentsDownloaded { get; }
 
         event PlayingStateChangedEventHandler PlayingStateChanged;
+        event PercentsDownloadedChangedEventHandler PercentsDownloadedChanged;
+        event SecondsPlayedChangedEventHandler SecondsPlayedChanged;
 
         PlayingState State { get; }
     }

@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <SolidColorBrush x:Key="ThatGrayColorBrush" Color="DarkGray" />
-    <SolidColorBrush x:Key="ThatLightGrayColorBrush" Color="LightGray" />
+    <SolidColorBrush x:Key="ThatLightGrayColorBrush" Color="#F0F0F0" />
     
     <ControlTemplate x:Key="MediaMusic">
         <Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
