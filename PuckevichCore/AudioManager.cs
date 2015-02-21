@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using PuckevichCore.DataVirtualization;
+using PuckevichCore.Interfaces;
 using Un4seen.Bass;
 using VkNet;
 using VkNet.Enums.Filters;
@@ -17,6 +19,7 @@ namespace PuckevichCore
         private AudioInfoProvider __InfoProvider;
         private int __IsDisposingNow = 0;
         private readonly ISet<IManagedPlayable> __OpenedChannels = new HashSet<IManagedPlayable>();
+        private IAudioStorage __AudioStorage;
 
         private AudioManager()
         {
@@ -41,12 +44,13 @@ namespace PuckevichCore
             get { return __InfoProvider; }
         }
 
-        public void Init(string email, string password, IAudioStorage storage, IWebDownloader downloader)
+        public void Init(string email, string password, IFileStorage storage, IWebDownloader downloader)
         {
             var api = new VkApi();
             api.Authorize(APP_ID, email, password, Settings.Audio);
+            __AudioStorage = new CacheStorage.CacheStorage(storage);
             __InfoProvider = new AudioInfoProvider(api,
-                                                   new AudioInfoFactory(storage, downloader),
+                                                   new AudioInfoFactory(__AudioStorage, downloader),
                                                    playable =>
                                                    {
                                                        if (__IsDisposingNow == 0)
@@ -72,6 +76,7 @@ namespace PuckevichCore
                 audio.Stop();
             }
 
+            __AudioStorage.Dispose();
             Bass.BASS_Free();
         }
     }

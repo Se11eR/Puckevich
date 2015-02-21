@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using PuckevichCore.DataVirtualization;
+using PuckevichCore.Interfaces;
 using VkNet;
 using VkNet.Model.Attachments;
 

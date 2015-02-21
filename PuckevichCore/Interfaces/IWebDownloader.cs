@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace PuckevichCore
+namespace PuckevichCore.Interfaces
 {
     public interface IWebDownloader
     {

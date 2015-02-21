@@ -2,8 +2,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using PuckevichCore;
+using PuckevichCore.Interfaces;
 
-namespace PuckevichPlayer.Storage
+namespace PuckevichCore.CacheStorage
 {
     internal class CacheStream : ICacheStream
     {

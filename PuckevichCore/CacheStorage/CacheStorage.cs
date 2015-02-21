@@ -1,35 +1,35 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.IsolatedStorage;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using PuckevichCore;
+using PuckevichCore.Interfaces;
 
-namespace PuckevichPlayer.Storage
+namespace PuckevichCore.CacheStorage
 {
-    public class CacheStorage : IAudioStorage
+    internal class CacheStorage : IAudioStorage
     {
+        private readonly IFileStorage __Storage;
         private const string MAP_FILE = "audios.json";
         private const string FILE_NAME_PATTERN = "{0} - {1}#{2}#.mp3";
-        private const string IsolatedStoreRootDir = "m_RootDir";
 
-        private IsolatedStorageFile __IsoStorage;
         private Dictionary<long, JsonAudioModel> __AudioDict = new Dictionary<long, JsonAudioModel>();
         private JsonTextWriter __Writer;
         private JsonSerializer __Serializer;
 
-        private static FileInfo GetFileInfo(string path, IsolatedStorageFile store)
+        public CacheStorage(IFileStorage storage)
         {
-            return new FileInfo(GetFullyQualifiedFileName(path, store));
-        }
+            __Storage = storage;
 
-        private static string GetFullyQualifiedFileName(string path, IsolatedStorageFile store)
-        {
-            return Path.Combine(store.GetType()
-              .GetField(IsolatedStoreRootDir,
-              System.Reflection.BindingFlags.NonPublic |
-              System.Reflection.BindingFlags.Instance).GetValue(store).ToString(), path);
+            Stream s = !__Storage.FileExists(MAP_FILE)
+                           ? __Storage.CreateFile(MAP_FILE)
+                           : __Storage.OpenFile(MAP_FILE, FileMode.Open);
+
+            using (var file = new JsonTextReader(new StreamReader(s)))
+            {
+                __Serializer = new JsonSerializer { Formatting = Formatting.Indented };
+                __AudioDict = __Serializer.Deserialize<Dictionary<long, JsonAudioModel>>(file) ?? new Dictionary<long, JsonAudioModel>();
+            }
         }
 
         private string MakeFileName(JsonAudioModel model)
@@ -39,7 +39,7 @@ namespace PuckevichPlayer.Storage
 
         private ICacheStream LocateCacheStream(JsonAudioModel audio)
         {
-            var isoStream = new IsolatedStorageFileStream(MakeFileName(audio), FileMode.Open);
+            var isoStream = __Storage.OpenFile(MakeFileName(audio), FileMode.Open);
             ICacheStream s = new CacheStream(isoStream, audio);
 
             s.AudioSize = audio.AudioSize;
@@ -64,7 +64,7 @@ namespace PuckevichPlayer.Storage
             };
 
             __AudioDict.Add(audioModel.AudioId, audioModel);
-            ICacheStream s = new CacheStream(new IsolatedStorageFileStream(MakeFileName(audioModel), FileMode.Create), audioModel);
+            ICacheStream s = new CacheStream(__Storage.CreateFile(MakeFileName(audioModel)), audioModel);
 
             return s;
         }
@@ -80,7 +80,7 @@ namespace PuckevichPlayer.Storage
             ICacheStream s;
             if (__AudioDict.TryGetValue(audio.AudioId, out audioModel))
             {
-                if (__IsoStorage.FileExists(MakeFileName(audioModel)))
+                if (__Storage.FileExists(MakeFileName(audioModel)))
                 {
                     s = await LocateCacheStreamAsync(audioModel);
                 }
@@ -101,7 +101,7 @@ namespace PuckevichPlayer.Storage
             ICacheStream s;
             if (__AudioDict.TryGetValue(audio.AudioId, out audioModel))
             {
-                if (__IsoStorage.FileExists(MakeFileName(audioModel)))
+                if (__Storage.FileExists(MakeFileName(audioModel)))
                 {
                     s = LocateCacheStream(audioModel);
                 }
@@ -122,32 +122,14 @@ namespace PuckevichPlayer.Storage
             if (__AudioDict.TryGetValue(audio.AudioId, out audioModel))
             {
                 var fname = MakeFileName(audioModel);
-                if (__IsoStorage.FileExists(fname))
+                if (__Storage.FileExists(fname))
                 {
-                    var length = GetFileInfo(fname, __IsoStorage).Length;
+                    var length = __Storage.GetFileSize(fname);
                     return length >= audioModel.AudioSize;
                 }
                 return false;
             }
             return false;
-        }
-
-        public void Initialize()
-        {
-            __IsoStorage =
-                IsolatedStorageFile.GetStore(IsolatedStorageScope.User | IsolatedStorageScope.Domain | IsolatedStorageScope.Assembly,
-                                             null,
-                                             null);
-
-            Stream s = !__IsoStorage.FileExists(MAP_FILE)
-                           ? __IsoStorage.CreateFile(MAP_FILE)
-                           : __IsoStorage.OpenFile(MAP_FILE, FileMode.Open);
-
-            using (var file = new JsonTextReader(new StreamReader(s)))
-            {
-                __Serializer = new JsonSerializer { Formatting = Formatting.Indented };
-                __AudioDict = __Serializer.Deserialize<Dictionary<long, JsonAudioModel>>(file) ?? new Dictionary<long, JsonAudioModel>();
-            }
         }
 
         public void RemovecachedAudio(long auidiId)
@@ -159,13 +141,13 @@ namespace PuckevichPlayer.Storage
         {
             try
             {
-                __Writer = new JsonTextWriter(new StreamWriter(__IsoStorage.OpenFile(MAP_FILE, FileMode.Truncate)));
+                __Writer = new JsonTextWriter(new StreamWriter(__Storage.OpenFile(MAP_FILE, FileMode.Truncate)));
                 __Serializer.Serialize(__Writer, __AudioDict);
             }
             finally
             {
                 __Writer.Close();
-                __IsoStorage.Close();
+                __Storage.Dispose();
             }
         }
     }

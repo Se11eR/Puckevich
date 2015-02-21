@@ -1,4 +1,4 @@
-namespace PuckevichPlayer.Storage
+namespace PuckevichCore.CacheStorage
 {
     internal class JsonAudioModel
     {

@@ -101,10 +101,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AudioInfo.cs" />
+    <Compile Include="CacheStorage\CacheStorage.cs" />
+    <Compile Include="CacheStorage\CacheStream.cs" />
+    <Compile Include="CacheStorage\JsonModel.cs" />
     <Compile Include="DataVirtualization\IItemsProvider.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Interfaces\IAudio.cs" />
     <Compile Include="Interfaces\ICacheStream.cs" />
+    <Compile Include="Interfaces\IFileStorage.cs" />
     <Compile Include="Interfaces\IManagedPlayable.cs" />
     <Compile Include="Interfaces\IAudioStorage.cs" />
     <Compile Include="Interfaces\IWebDownloader.cs" />

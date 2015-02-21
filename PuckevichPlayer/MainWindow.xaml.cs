@@ -11,6 +11,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using PuckevichCore.DataVirtualization;
+using PuckevichCore.Interfaces;
 using PuckevichPlayer.Pages;
 using PuckevichPlayer.Storage;
 using PuckevichCore;
@@ -26,8 +28,6 @@ namespace PuckevichPlayer
         private const int PAGE_SIZE = 100;
         private const int PAGE_TIMEOUT = 1000 * 60; //1 minute
 
-        private CacheStorage __Storage;
-
         public MainWindow()
         {
             InitializeComponent();
@@ -38,22 +38,15 @@ namespace PuckevichPlayer
         private void OnClosed(object sender, EventArgs args)
         {
             AudioManager.Instance.Dispose();
-            __Storage.Dispose();
         }
 
         private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
-            __Storage = new CacheStorage();
             var web = new WedDownloader();
             string email = "vkontakt232@gmail.com";
             string pass = "ohmaniwillneverforgiveyourassforthisshit";
 
-            await Task.Run(() =>
-            {
-                __Storage.Initialize();
-                AudioManager.Instance.Init(email, pass, __Storage, web);
-                
-            });
+            await Task.Run(() => AudioManager.Instance.Init(email, pass, new IsolatedStorageFileStorage(), web));
 
             IItemsProvider<IAudio> audioProvider = AudioManager.Instance.AudioInfoProvider;
             var collection =

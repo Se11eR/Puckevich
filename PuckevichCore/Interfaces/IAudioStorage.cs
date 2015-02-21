@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace PuckevichCore
+namespace PuckevichCore.Interfaces
 {
     public enum AudioStorageStatus
     {
@@ -10,10 +10,8 @@ namespace PuckevichCore
         NotStored
     }
 
-    public interface IAudioStorage : IDisposable
+    internal interface IAudioStorage : IDisposable
     {
-        void Initialize();
-
         /// <summary>
         /// Возвращает поток кешированного аудиофайла, или создает новый, если файла нет в хранилище.
         /// </summary>

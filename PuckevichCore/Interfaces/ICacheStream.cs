@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace PuckevichCore
+namespace PuckevichCore.Interfaces
 {
-    public interface ICacheStream: IDisposable
+    internal interface ICacheStream: IDisposable
     {
         int Read(byte[] buffer, int offset, int count);
 

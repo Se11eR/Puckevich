@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PuckevichCore;
+using PuckevichCore.DataVirtualization;
+using PuckevichCore.Interfaces;
 
 namespace PuckevichPlayer
 {

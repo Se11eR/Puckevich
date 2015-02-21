@@ -60,20 +60,18 @@
     <Compile Include="Pages\p_Start.xaml.cs">
       <DependentUpon>p_Start.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Storage\IsolatedStorageFileStorage.cs" />
     <Compile Include="Virtualizing\AsyncVirtualizingCollection.cs" />
     <Compile Include="AudioModel.cs" />
     <Compile Include="AudioModelProviderWrapper.cs" />
-    <Compile Include="Storage\CacheStream.cs" />
     <Compile Include="Controls\AudioEntry.xaml.cs">
       <DependentUpon>AudioEntry.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Converters\IntToDurationConverter.cs" />
-    <Compile Include="Storage\JsonModel.cs" />
     <Compile Include="Pages\p_Player.xaml.cs">
       <DependentUpon>p_Player.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Storage\CacheStorage.cs" />
     <Compile Include="Virtualizing\VirtualizingCollection.cs" />
     <Compile Include="WedDownloader.cs" />
     <Page Include="Controls\AudioEntry.xaml">

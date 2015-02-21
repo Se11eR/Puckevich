@@ -1,4 +1,4 @@
-namespace PuckevichCore
+namespace PuckevichCore.Interfaces
 {
     public interface IAudio
     {

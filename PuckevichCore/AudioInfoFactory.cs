@@ -1,4 +1,5 @@
 ﻿using System;
+using PuckevichCore.Interfaces;
 using VkNet.Model;
 
 namespace PuckevichCore

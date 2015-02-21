@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Timers;
-
+using PuckevichCore.Interfaces;
 
 namespace PuckevichCore
 {

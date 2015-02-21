@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace PuckevichCore
+namespace PuckevichCore.Interfaces
 {
     public delegate void PlayingStateChangedEventHandler(IManagedPlayable sender);
     public delegate void PercentsDownloadedChangedEventHandler(IManagedPlayable sender);

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PuckevichCore
+namespace PuckevichCore.DataVirtualization
 {
     /// <summary>
     /// Represents a provider of collection details.
