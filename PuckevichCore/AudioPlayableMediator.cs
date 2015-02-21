@@ -47,7 +47,7 @@ namespace PuckevichCore
 
         private void CheckInit()
         {
-            if (__InternalPlayable.State == PlayingState.NotInit)
+            if (__InternalPlayable.State == PlayingState.NotInit || __InternalPlayable.State == PlayingState.Stopped)
             {
                 __InternalPlayable.Init();
             }
@@ -55,7 +55,7 @@ namespace PuckevichCore
 
         private async Task CheckInitAsync()
         {
-            if (__InternalPlayable.State == PlayingState.NotInit)
+            if (__InternalPlayable.State == PlayingState.NotInit || __InternalPlayable.State == PlayingState.Stopped)
             {
                 await __InternalPlayable.InitAsync();
             }
