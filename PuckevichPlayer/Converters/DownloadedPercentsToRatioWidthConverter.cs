@@ -8,24 +8,26 @@ using System.Windows.Data;
 
 namespace PuckevichPlayer.Converters
 {
-    public class TimePlayedAndDurationToRatioWidthConverter : IMultiValueConverter
+    public class DownloadedPercentsToRatioWidthConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             try
             {
-                if (values.Length != 3)
-                    return null;
+                if (values.Length != 2)
+                    return 0.0;
 
-                var timePlayed = (int)values[0];
-                var duration = (int)values[1];
-                var controlWidth = (double)values[2];
+                if (!(values[0] is double && values[1] is double))
+                    return 0.0;
 
-                return ((double)timePlayed / duration) * controlWidth;
+                var downloadedPercents = (double)values[0];
+                var controlWidth = (double)values[1];
+
+                return (downloadedPercents / 100) * controlWidth;
             }
             catch (Exception)
             {
-                return null;
+                return 0.0;
             }
         }
 

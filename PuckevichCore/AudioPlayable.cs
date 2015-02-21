@@ -103,51 +103,55 @@ namespace PuckevichCore
 
         private void WebDownloader()
         {
-            long audioLengthInBytes;
-
-            if (__PlayingState == PlayingState.Stopped)
-                return;
-
-            var webStream = __Downloader.GetUrlStream(__Url, __CacheStream.Position, out audioLengthInBytes);
-
-            if (webStream == null)
-                throw new ApplicationException("Error while creating Url Stream!");
-
-            if (__CacheStream.Status == AudioStorageStatus.NotStored)
-                __CacheStream.AudioSize = audioLengthInBytes;
-
-            __ProducerConsumerStream = new ProducerConsumerMemoryStream(__CacheStream.Position > 0 ? __CacheStream : null);
-
-            __ProducerConsumerStream.CopyToInnerStream();
-
-            const int BUFFER_SIZE = 100000; //100 kB
-            var buffer = new byte[BUFFER_SIZE];
-
-            int blockRead = 0;
-            int lengthRead;
-
-            if (__PlayingState == PlayingState.Stopped)
-                return;
-
-            while ((lengthRead = webStream.Read(buffer, 0, buffer.Length)) != 0)
+            try
             {
-                blockRead += lengthRead;
-                __ProducerConsumerStream.Write(buffer, 0, lengthRead);
-                
-                if (blockRead >= BUFFER_SIZE)
-                {
-                    blockRead = 0;
-                    __WebHandle.Set();
-                }
-
-                __DownloadedFracion = (double)__ProducerConsumerStream.WritePosition / __CacheStream.AudioSize;
-                OnDownloadedFracionChanged();
+                long audioLengthInBytes;
 
                 if (__PlayingState == PlayingState.Stopped)
                     return;
-            }
 
-            __ProducerConsumerStream.WriteFinished = true;
+                var webStream = __Downloader.GetUrlStream(__Url, __CacheStream.Position, out audioLengthInBytes);
+
+                if (webStream == null)
+                    throw new ApplicationException("Error while creating Url Stream!");
+
+                if (__CacheStream.Status == AudioStorageStatus.NotStored)
+                    __CacheStream.AudioSize = audioLengthInBytes;
+
+                __ProducerConsumerStream = new ProducerConsumerMemoryStream(__CacheStream.Position > 0 ? __CacheStream : null);
+
+                __ProducerConsumerStream.CopyToInnerStream();
+
+                const int BUFFER_SIZE = 100000; //100 kB
+                var buffer = new byte[BUFFER_SIZE];
+
+                int blockRead = 0;
+                int lengthRead;
+
+                if (__PlayingState == PlayingState.Stopped)
+                    return;
+
+                while ((lengthRead = webStream.Read(buffer, 0, buffer.Length)) != 0)
+                {
+                    blockRead += lengthRead;
+                    __ProducerConsumerStream.Write(buffer, 0, lengthRead);
+                
+                    if (blockRead >= BUFFER_SIZE)
+                    {
+                        blockRead = 0;
+                        __WebHandle.Set();
+                    }
+
+                    DownloadedFracion = (double)__ProducerConsumerStream.WritePosition / __CacheStream.AudioSize;
+
+                    if (__PlayingState == PlayingState.Stopped)
+                        return;
+                }
+            }
+            finally
+            {
+                __ProducerConsumerStream.WriteFinished = true;
+            }
         }
 
         private int ProducerConsumerReadProc(IntPtr buffer, int length, IntPtr user)
@@ -199,6 +203,7 @@ namespace PuckevichCore
                     __ProducerConsumerStream = new ProducerConsumerMemoryStream(__CacheStream);
                     __ProducerConsumerStream.CopyToInnerStream();
                     __ProducerConsumerStream.WriteFinished = true;
+                    DownloadedFracion = 100.0;
 
                     break;
                 case AudioStorageStatus.PartiallyStored:
@@ -210,7 +215,7 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
 
-            InitActions();
+            WhenInit();
         }
 
         public async Task InitAsync()
@@ -223,6 +228,7 @@ namespace PuckevichCore
                     __ProducerConsumerStream = new ProducerConsumerMemoryStream(__CacheStream);
                     await __ProducerConsumerStream.CopyToInnerStreamAsync();
                     __ProducerConsumerStream.WriteFinished = true;
+                    DownloadedFracion = 100.0;
 
                     break;
                 case AudioStorageStatus.PartiallyStored:
@@ -235,10 +241,10 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
 
-            InitActions();
+            WhenInit();
         }
 
-        private void InitActions()
+        private void WhenInit()
         {
             __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
                                                           BASSFlag.BASS_DEFAULT,
@@ -247,7 +253,6 @@ namespace PuckevichCore
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
             Bass.BASS_ChannelSetSync(__BassStream, BASSSync.BASS_SYNC_END, 0, __EndStreamProc, IntPtr.Zero);
-            __PlayingState = PlayingState.Stopped;
         }
 
         public void Play()
@@ -281,6 +286,11 @@ namespace PuckevichCore
         public double DownloadedFracion
         {
             get { return __DownloadedFracion; }
+            set
+            {
+                __DownloadedFracion = value;
+                OnDownloadedFracionChanged();
+            }
         }
 
         public int SecondsPlayed

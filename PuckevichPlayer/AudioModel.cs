@@ -24,7 +24,8 @@ namespace PuckevichPlayer
             __Playable = __InternalAudio.Playable;
 
             __InternalAudio.Playable.PlayingStateChanged += sender => AudioState = sender.State;
-            __InternalAudio.Playable.PercentsDownloadedChanged += sender => Downloaded = sender.PercentsDownloaded;
+            __InternalAudio.Playable.PercentsDownloadedChanged += 
+                sender => Downloaded = sender.PercentsDownloaded;
             __InternalAudio.Playable.SecondsPlayedChanged += sender => TimePlayed = sender.SecondsPlayed;
         }
 
@@ -92,13 +93,8 @@ namespace PuckevichPlayer
             }
         }
 
-        public async Task AudioEntryClicked()
+        public void AudioEntryClicked()
         {
-            if (__Playable.State == PlayingState.NotInit || __Playable.State == PlayingState.Stopped)
-            {
-                await __Playable.InitAsync();
-            }
-
             switch (__Playable.State)
             {
                 case PlayingState.NotInit:

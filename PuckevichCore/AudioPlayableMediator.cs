@@ -49,7 +49,15 @@ namespace PuckevichCore
         {
             if (__InternalPlayable.State == PlayingState.NotInit)
             {
-                throw new ApplicationException("AudioPlayableMediator was not initialized!");
+                __InternalPlayable.Init();
+            }
+        }
+
+        private async Task CheckInitAsync()
+        {
+            if (__InternalPlayable.State == PlayingState.NotInit)
+            {
+                await __InternalPlayable.InitAsync();
             }
         }
 
@@ -57,6 +65,18 @@ namespace PuckevichCore
         {
             CheckInit();
 
+            WhenPlay();
+        }
+
+        public async Task PlayAsync()
+        {
+            await CheckInitAsync();
+
+            WhenPlay();
+        }
+
+        private void WhenPlay()
+        {
             if (__InternalPlayable.State != PlayingState.Playing)
             {
                 __InternalPlayable.Play();
@@ -69,6 +89,18 @@ namespace PuckevichCore
         {
             CheckInit();
 
+            WhenPause();
+        }
+
+        public async Task PauseAsync()
+        {
+            await CheckInitAsync();
+
+            WhenPause();
+        }
+
+        private void WhenPause()
+        {
             if (__InternalPlayable.State != PlayingState.Paused && __InternalPlayable.State != PlayingState.NotInit)
             {
                 __InternalPlayable.Pause();
@@ -84,23 +116,26 @@ namespace PuckevichCore
             if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
             {
                 __InternalPlayable.Stop();
-                OnPlayingStateChanged();
-                __PlaybackTimer.Stop();
-                OnSecondsPlayedChanged();
+                WhenStop();
             }
         }
 
         public async Task StopAsync()
         {
-            CheckInit();
+            await CheckInitAsync();
 
             if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
             {
                 await __InternalPlayable.StopAsync();
-                OnPlayingStateChanged();
-                __PlaybackTimer.Stop();
-                OnSecondsPlayedChanged();
+                WhenStop();
             }
+        }
+
+        private void WhenStop()
+        {
+            OnPlayingStateChanged();
+            __PlaybackTimer.Stop();
+            OnSecondsPlayedChanged();
         }
 
         public double PercentsDownloaded
@@ -123,16 +158,6 @@ namespace PuckevichCore
         public PlayingState State
         {
             get { return __InternalPlayable.State; }
-        }
-
-        public void Init()
-        {
-            __InternalPlayable.Init();
-        }
-
-        public async Task InitAsync()
-        {
-            await __InternalPlayable.InitAsync();
         }
     }
 }

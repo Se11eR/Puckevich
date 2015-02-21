@@ -56,7 +56,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\SampleData\MockAudioModel.cs" />
-    <Compile Include="Converters\TimePlayedAndDurationToRatioWidthConverter.cs" />
+    <Compile Include="Converters\DownloadedPercentsToRatioWidthConverter.cs" />
     <Compile Include="Pages\p_Start.xaml.cs">
       <DependentUpon>p_Start.xaml</DependentUpon>
     </Compile>

@@ -11,15 +11,15 @@ namespace PuckevichCore
 
         void Play();
 
+        Task PlayAsync();
+
         void Pause();
+
+        Task PauseAsync();
 
         void Stop();
 
         Task StopAsync();
-
-        void Init();
-
-        Task InitAsync();
 
         int SecondsPlayed { get; }
 

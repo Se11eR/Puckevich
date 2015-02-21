@@ -67,7 +67,7 @@ namespace PuckevichPlayer
             if (audioModel == null)
                 return;
 
-            await audioModel.AudioEntryClicked();
+            audioModel.AudioEntryClicked();
             if (__CurrentActive == null)
             {
                 __CurrentActive = audioModel;

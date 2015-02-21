@@ -45,6 +45,8 @@ namespace PuckevichPlayer
         {
             __Storage = new CacheStorage();
             var web = new WedDownloader();
+            string email = "vkontakt232@gmail.com";
+            string pass = "ohmaniwillneverforgiveyourassforthisshit";
 
             await Task.Run(() =>
             {
