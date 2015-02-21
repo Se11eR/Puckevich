@@ -7,13 +7,14 @@
              xmlns:sampleData="clr-namespace:PuckevichPlayer.Controls.SampleData"
              mc:Ignorable="d" 
              Padding="10 0 0 0"
-             d:DataContext="{Binding Source={StaticResource MockAudioModel}}"
+             d:DataContext="{Binding Source={StaticResource StubAudioModel}}"
              d:DesignWidth="478" 
              Style="{StaticResource AudioEntryControlStyle}">
     <UserControl.Resources>
         <ResourceDictionary>
-            <sampleData:MockAudioModel x:Key="MockAudioModel"/>
+            <sampleData:StubAudioModel x:Key="StubAudioModel"/>
             <conv:IntToDurationConverter x:Key="IntToDurationConverter" />
+            <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary 
                   Source="AudioEntryStyles.xaml">
@@ -32,7 +33,7 @@
         </Border>
         <Border BorderThickness="0 0 0 1" 
                 BorderBrush="{StaticResource ThatLightGrayColorBrush}">
-            <Grid>
+            <Grid Margin="0 5 0 10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -50,17 +51,25 @@
                        Margin="0 -1 0 4"
                        FontSize="20"
                        Style="{StaticResource AudioNameText}" />
-                <ContentControl Grid.Row="0" 
-                            Grid.RowSpan="2" 
-                            Grid.Column="1" 
-                                Style="{StaticResource AudioEntryPlayPauseRightIndicator}" />
-                <TextBlock Grid.Row="0" 
-                       Grid.RowSpan="2" 
-                       Grid.Column="1"
-                       Text="{Binding Duration, Converter={StaticResource IntToDurationConverter}}"
-                       FontSize="25"
-                       Foreground="{StaticResource ThatGrayColorBrush}" 
-                       Style="{StaticResource AudiEntryDurationStyle}" />
+                <Grid Grid.Row="0" 
+                                Grid.RowSpan="2" 
+                                Grid.Column="1">
+                    <ContentControl 
+                                    Style="{StaticResource AudioEntryPlayPauseRightIndicator}" />
+                    <TextBlock 
+                           Text="{Binding Duration, Converter={StaticResource IntToDurationConverter}}"
+                           FontSize="25"
+                           Foreground="{StaticResource ThatGrayColorBrush}" 
+                           Style="{StaticResource AudiEntryDurationStyle}" />
+                    <TextBlock Text="Cached"
+                               FontSize="14"
+                               FontWeight="Light"
+                               Visibility="{Binding IsCached, Converter={StaticResource BoolToVisibilityConverter}}"
+                               Foreground="{StaticResource ThatGrayColorBrush}"
+                               Margin="0 0 4 0"
+                               VerticalAlignment="Bottom"
+                               HorizontalAlignment="Center"/>
+                </Grid>
             </Grid>
         </Border>
     </Grid>

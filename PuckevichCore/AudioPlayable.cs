@@ -47,6 +47,11 @@ namespace PuckevichCore
                 __PlayingState = PlayingState.Stopped;
                 WhenStopped();
             };
+
+            if (storage.CheckCached(audio))
+            {
+                DownloadedFracion = 1.0;
+            }
         }
 
         private void OnDownloadedFracionChanged()
@@ -203,7 +208,7 @@ namespace PuckevichCore
                     __ProducerConsumerStream = new ProducerConsumerMemoryStream(__CacheStream);
                     __ProducerConsumerStream.CopyToInnerStream();
                     __ProducerConsumerStream.WriteFinished = true;
-                    DownloadedFracion = 100.0;
+                    DownloadedFracion = 1.0;
 
                     break;
                 case AudioStorageStatus.PartiallyStored:
@@ -228,7 +233,7 @@ namespace PuckevichCore
                     __ProducerConsumerStream = new ProducerConsumerMemoryStream(__CacheStream);
                     await __ProducerConsumerStream.CopyToInnerStreamAsync();
                     __ProducerConsumerStream.WriteFinished = true;
-                    DownloadedFracion = 100.0;
+                    DownloadedFracion = 1.0;
 
                     break;
                 case AudioStorageStatus.PartiallyStored:

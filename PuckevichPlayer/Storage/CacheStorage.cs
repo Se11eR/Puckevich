@@ -12,11 +12,25 @@ namespace PuckevichPlayer.Storage
     {
         private const string MAP_FILE = "audios.json";
         private const string FILE_NAME_PATTERN = "{0} - {1}#{2}#.mp3";
+        private const string IsolatedStoreRootDir = "m_RootDir";
 
         private IsolatedStorageFile __IsoStorage;
         private Dictionary<long, JsonAudioModel> __AudioDict = new Dictionary<long, JsonAudioModel>();
         private JsonTextWriter __Writer;
         private JsonSerializer __Serializer;
+
+        private static FileInfo GetFileInfo(string path, IsolatedStorageFile store)
+        {
+            return new FileInfo(GetFullyQualifiedFileName(path, store));
+        }
+
+        private static string GetFullyQualifiedFileName(string path, IsolatedStorageFile store)
+        {
+            return Path.Combine(store.GetType()
+              .GetField(IsolatedStoreRootDir,
+              System.Reflection.BindingFlags.NonPublic |
+              System.Reflection.BindingFlags.Instance).GetValue(store).ToString(), path);
+        }
 
         private string MakeFileName(JsonAudioModel model)
         {
@@ -100,6 +114,22 @@ namespace PuckevichPlayer.Storage
                 s = CreateCacheStream(audio);
 
             return s;
+        }
+
+        public bool CheckCached(IAudio audio)
+        {
+            JsonAudioModel audioModel;
+            if (__AudioDict.TryGetValue(audio.AudioId, out audioModel))
+            {
+                var fname = MakeFileName(audioModel);
+                if (__IsoStorage.FileExists(fname))
+                {
+                    var length = GetFileInfo(fname, __IsoStorage).Length;
+                    return length >= audioModel.AudioSize;
+                }
+                return false;
+            }
+            return false;
         }
 
         public void Initialize()

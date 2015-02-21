@@ -27,6 +27,8 @@ namespace PuckevichPlayer
             __InternalAudio.Playable.PercentsDownloadedChanged += 
                 sender => Downloaded = sender.PercentsDownloaded;
             __InternalAudio.Playable.SecondsPlayedChanged += sender => TimePlayed = sender.SecondsPlayed;
+
+            __Downloaded = __InternalAudio.Playable.PercentsDownloaded;
         }
 
         public string Title
@@ -90,6 +92,15 @@ namespace PuckevichPlayer
             {
                 __Downloaded = value;
                 OnPropertyChanged();
+                OnPropertyChanged("IsCached");
+            }
+        }
+
+        public bool IsCached
+        {
+            get
+            {
+                return Math.Abs(__Downloaded - 100.0) < 0.01;
             }
         }
 

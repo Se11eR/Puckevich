@@ -7,7 +7,7 @@ using PuckevichCore;
 
 namespace PuckevichPlayer.Controls.SampleData
 {
-    internal class MockAudioModel
+    internal class StubAudioModel
     {
         public string Title
         {
@@ -53,7 +53,15 @@ namespace PuckevichPlayer.Controls.SampleData
         {
             get
             {
-                return 0.70;
+                return 70.0;
+            }
+        }
+
+        public bool IsCached
+        {
+            get
+            {
+                return true;
             }
         }
     }

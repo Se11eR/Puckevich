@@ -23,6 +23,8 @@ namespace PuckevichCore
 
         ICacheStream GetCacheStream(IAudio audio);
 
+        bool CheckCached(IAudio audio);
+
         /// <summary>
         /// Удаляет кешированную аудиозапись
         /// </summary>
