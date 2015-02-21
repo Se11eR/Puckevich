@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Timers;
 using PuckevichCore.Interfaces;
@@ -19,6 +18,7 @@ namespace PuckevichCore
         {
             __InternalPlayable = new AudioPlayable(audio, storage, downloader, url);
             __InternalPlayable.DownloadedFracionChanged += OnPercentsDownloadedChanged;
+            __InternalPlayable.AudioNaturallyEnded += WhenStop;
 
             __PlaybackTimer.Elapsed += (sender, args) => OnSecondsPlayedChanged();
             __PlaybackTimer.AutoReset = true;
@@ -45,17 +45,19 @@ namespace PuckevichCore
                 handler(this);
         }
 
-        private void CheckInit()
+        private void CheckInit(bool checkStop = true)
         {
-            if (__InternalPlayable.State == PlayingState.NotInit || __InternalPlayable.State == PlayingState.Stopped)
+            if (__InternalPlayable.State == PlayingState.NotInit
+                || (checkStop && __InternalPlayable.State == PlayingState.Stopped))
             {
                 __InternalPlayable.Init();
             }
         }
 
-        private async Task CheckInitAsync()
+        private async Task CheckInitAsync(bool checkStop = true)
         {
-            if (__InternalPlayable.State == PlayingState.NotInit || __InternalPlayable.State == PlayingState.Stopped)
+            if (__InternalPlayable.State == PlayingState.NotInit
+                || (checkStop && __InternalPlayable.State == PlayingState.Stopped))
             {
                 await __InternalPlayable.InitAsync();
             }
@@ -111,7 +113,7 @@ namespace PuckevichCore
 
         public void Stop()
         {
-            CheckInit();
+            CheckInit(false);
 
             if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
             {
@@ -122,7 +124,7 @@ namespace PuckevichCore
 
         public async Task StopAsync()
         {
-            await CheckInitAsync();
+            await CheckInitAsync(false);
 
             if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
             {

@@ -30,6 +30,7 @@ namespace PuckevichCore
         private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
 
         public event Action DownloadedFracionChanged;
+        public event Action AudioNaturallyEnded;
 
         internal AudioPlayable(IAudio audio, IAudioStorage storage, IWebDownloader downloader, Uri url)
         {
@@ -47,6 +48,7 @@ namespace PuckevichCore
             {
                 __PlayingState = PlayingState.Stopped;
                 WhenStopped();
+                OnAudioNaturallyEnded();
             };
 
             if (storage.CheckCached(audio))
@@ -58,6 +60,13 @@ namespace PuckevichCore
         private void OnDownloadedFracionChanged()
         {
             var handler = DownloadedFracionChanged;
+            if (handler != null)
+                handler();
+        }
+
+        private void OnAudioNaturallyEnded()
+        {
+            var handler = AudioNaturallyEnded;
             if (handler != null)
                 handler();
         }
@@ -171,18 +180,18 @@ namespace PuckevichCore
             try
             {
                 var readbuffer = new byte[length];
-                var todo = length;
+                var toRead = length;
 
-                while (todo > 0)
+                while (toRead > 0)
                 {
-                    int lengthRead = __ProducerConsumerStream.Read(readbuffer, 0, todo);
+                    int lengthRead = __ProducerConsumerStream.Read(readbuffer, 0, toRead);
                     if (lengthRead > 0)
                         Marshal.Copy(readbuffer, 0, buffer, lengthRead);
                     else if (lengthRead == 0 && __ProducerConsumerStream.WriteFinished)
-                        //Тогда поток автоматически "остановится", вызовется сооветствующий хендлер
+                        //Тогда поток автоматически "остановится" и вызовется сооветствующий хендлер
                         return 0;
 
-                    todo -= lengthRead;
+                    toRead -= lengthRead;
                 }
                 return length;
             }
@@ -190,13 +199,6 @@ namespace PuckevichCore
             {
                 return 0;
             }
-        }
-
-        private void StopInternal()
-        {
-            if (!Bass.BASS_ChannelStop(__BassStream))
-                Error.HandleBASSError("BASS_ChannelStop");
-            __PlayingState = PlayingState.Stopped;
         }
 
         public void Init()
@@ -258,7 +260,11 @@ namespace PuckevichCore
                                                           IntPtr.Zero);
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
-            Bass.BASS_ChannelSetSync(__BassStream, BASSSync.BASS_SYNC_END, 0, __EndStreamProc, IntPtr.Zero);
+            Bass.BASS_ChannelSetSync(__BassStream,
+                                     BASSSync.BASS_SYNC_END,
+                                     0,
+                                     __EndStreamProc,
+                                     IntPtr.Zero);
         }
 
         public void Play()
@@ -275,6 +281,13 @@ namespace PuckevichCore
                 Error.HandleBASSError("BASS_ChannelPause");
             __PlayingState = PlayingState.Paused;
             __PlayingStopwatch.Stop();
+        }
+
+        private void StopInternal()
+        {
+            if (!Bass.BASS_ChannelStop(__BassStream))
+                Error.HandleBASSError("BASS_ChannelStop");
+            __PlayingState = PlayingState.Stopped;
         }
 
         public void Stop()
