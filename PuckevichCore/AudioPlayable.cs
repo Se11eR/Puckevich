@@ -19,7 +19,7 @@ namespace PuckevichCore
 
         private readonly IAudio __Audio;
         private readonly IAudioStorage __Storage;
-        private readonly EventWaitHandle __WebHandle = new AutoResetEvent(false);
+        private readonly EventWaitHandle __WebHandle = new ManualResetEvent(false);
         private readonly IWebDownloader __Downloader;
         private readonly Uri __Url;
         private ICacheStream __CacheStream;
@@ -137,7 +137,7 @@ namespace PuckevichCore
 
                 __ProducerConsumerStream.CopyToInnerStream();
 
-                const int BUFFER_SIZE = 100000; //100 kB
+                const int BUFFER_SIZE = 1024 * 8; //8 kB
                 var buffer = new byte[BUFFER_SIZE];
 
                 int blockRead = 0;
@@ -166,6 +166,7 @@ namespace PuckevichCore
             finally
             {
                 __ProducerConsumerStream.WriteFinished = true;
+                __WebHandle.Set();
             }
         }
 
@@ -174,6 +175,7 @@ namespace PuckevichCore
             if (__ProducerConsumerStream == null || !__ProducerConsumerStream.WriteFinished)
                 __WebHandle.WaitOne();
 
+            __WebHandle.Reset();
             if (__ProducerConsumerStream == null)
                 throw new ApplicationException("ProducerConsumerReadProc: __ProducerConsumerStream == null");
 
@@ -223,6 +225,11 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
 
+            __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
+                                                          BASSFlag.BASS_DEFAULT,
+                                                          __BASSFileProcs,
+                                                          IntPtr.Zero);
+
             WhenInit();
         }
 
@@ -249,19 +256,20 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
 
+            await
+                Task.Run(
+                         () =>
+                         __BassStream =
+                         Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
+                                                        BASSFlag.BASS_DEFAULT,
+                                                        __BASSFileProcs,
+                                                        IntPtr.Zero));
+
             WhenInit();
         }
 
         private void WhenInit()
         {
-            //TODO: Wrap this in Task.Run()
-            //Этот метод блокирует поток при медленном интернете, когда BASS пытается взять у mp3-ки первые какие-то
-            //свои данные из ProducerConsumerReadProc.
-            //Сделать какой-то индикатор.
-            __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
-                                                          BASSFlag.BASS_DEFAULT,
-                                                          __BASSFileProcs,
-                                                          IntPtr.Zero);
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
             Bass.BASS_ChannelSetSync(__BassStream,
