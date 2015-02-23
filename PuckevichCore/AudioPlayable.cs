@@ -14,6 +14,9 @@ namespace PuckevichCore
 
     internal class AudioPlayable
     {
+        private const int WEB_BUFFER_SIZE = 1024 * 8;
+        private const int READ_PROC_START_THRESHOLD = 1024 * 32;
+
         private readonly BASS_FILEPROCS __BASSFileProcs;
         private readonly SYNCPROC __EndStreamProc;
 
@@ -137,8 +140,7 @@ namespace PuckevichCore
 
                 __ProducerConsumerStream.CopyToInnerStream();
 
-                const int BUFFER_SIZE = 1024 * 8; //8 kB
-                var buffer = new byte[BUFFER_SIZE];
+                var buffer = new byte[WEB_BUFFER_SIZE];
 
                 int blockRead = 0;
                 int lengthRead;
@@ -150,12 +152,18 @@ namespace PuckevichCore
                 {
                     blockRead += lengthRead;
                     __ProducerConsumerStream.Write(buffer, 0, lengthRead);
-                
-                    if (blockRead >= BUFFER_SIZE)
+
+                    if (__PlayingState == PlayingState.Stopped)
+                        return;
+
+                    if (blockRead >= READ_PROC_START_THRESHOLD)
                     {
                         blockRead = 0;
                         __WebHandle.Set();
                     }
+
+                    if (__CacheStream == null)
+                        return;
 
                     DownloadedFracion = (double)__ProducerConsumerStream.WritePosition / __CacheStream.AudioSize;
 
