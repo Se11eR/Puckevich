@@ -254,6 +254,10 @@ namespace PuckevichCore
 
         private void WhenInit()
         {
+            //TODO: Wrap this in Task.Run()
+            //Этот метод блокирует поток при медленном интернете, когда BASS пытается взять у mp3-ки первые какие-то
+            //свои данные из ProducerConsumerReadProc.
+            //Сделать какой-то индикатор.
             __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
                                                           BASSFlag.BASS_DEFAULT,
                                                           __BASSFileProcs,
