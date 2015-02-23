@@ -75,8 +75,8 @@ namespace PuckevichCore
             {
                 audio.Stop();
             }
-
-            __AudioStorage.Dispose();
+            if (__AudioStorage != null)
+                __AudioStorage.Dispose();
             Bass.BASS_Free();
         }
     }

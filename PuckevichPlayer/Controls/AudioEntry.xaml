@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:conv="clr-namespace:PuckevichPlayer.Converters"
              xmlns:sampleData="clr-namespace:PuckevichPlayer.Controls.SampleData"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              Padding="10 0 0 0"
              d:DataContext="{Binding Source={StaticResource StubAudioModel}}"
@@ -12,9 +13,32 @@
              Style="{StaticResource AudioEntryControlStyle}">
     <UserControl.Resources>
         <ResourceDictionary>
+            <sys:Double x:Key="ThisHeight">85</sys:Double>
             <sampleData:StubAudioModel x:Key="StubAudioModel"/>
             <conv:IntToDurationConverter x:Key="IntToDurationConverter" />
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <Storyboard x:Key="SlidInPlaybackBarAnimation">
+                <ThicknessAnimation 
+                            Storyboard.TargetProperty="Margin"
+                            To="0 50 0 0"
+                            Completed="SlidInPlaybackBarAnimation_OnCompleted"
+                            Duration="0:0:1" FillBehavior="Stop">
+                    <ThicknessAnimation.EasingFunction>
+                        <SineEase EasingMode="EaseIn"></SineEase>
+                    </ThicknessAnimation.EasingFunction>
+                </ThicknessAnimation>
+            </Storyboard>
+            <Storyboard x:Key="SlidOutPlaybackBarAnimation">
+                <ThicknessAnimation 
+                            Storyboard.TargetProperty="Margin"
+                            To="0 0 0 0" 
+                            Completed="SlidOutPlaybackBarAnimation_OnCompleted"
+                            Duration="0:0:1" FillBehavior="Stop">
+                    <ThicknessAnimation.EasingFunction>
+                        <SineEase EasingMode="EaseOut"></SineEase>
+                    </ThicknessAnimation.EasingFunction>
+                </ThicknessAnimation>
+            </Storyboard>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary 
                   Source="AudioEntryStyles.xaml">
@@ -23,17 +47,43 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <Border HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-12 0 0 0" 
+        <Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="6" Margin="-12 0 0 0" 
+                BorderThickness="0"
+                Height="{StaticResource ThisHeight}"
                 Style="{StaticResource CurrentTrackBorderStyle}">
         </Border>
         <Border HorizontalAlignment="Left" 
                 Margin="-6 0 0 0"
-                BorderThickness="0" VerticalAlignment="Stretch" Background="{StaticResource ThatLightGrayColorBrush}"
+                Height="{StaticResource ThisHeight}"
+                BorderThickness="0" VerticalAlignment="Top" Background="{StaticResource ThatLightGrayColorBrush}"
                 Style="{StaticResource DownloadedProgressBorderStyle}">
         </Border>
-        <Border BorderThickness="0 0 0 1" 
-                BorderBrush="{StaticResource ThatLightGrayColorBrush}">
-            <Grid Margin="0 5 0 10">
+        <Border BorderThickness="0 0 0 1" Background="Transparent" 
+                BorderBrush="{StaticResource ThatLightGrayColorBrush}"
+                Name="PlaybackBorder"
+                Height="{StaticResource ThisHeight}">
+            <Border.Style>
+                <Style>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding AudioState}" 
+                                     Value="Playing">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Storyboard="{StaticResource SlidInPlaybackBarAnimation}" />
+                            </DataTrigger.EnterActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding AudioState}" 
+                                     Value="Stopped">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Storyboard="{StaticResource SlidOutPlaybackBarAnimation}" />
+                            </DataTrigger.EnterActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+        </Border>
+        <Border BorderThickness="0 0 0 0" 
+                VerticalAlignment="Top">
+            <Grid Margin="0 0 0 0" Height="{StaticResource ThisHeight}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>

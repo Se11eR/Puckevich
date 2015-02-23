@@ -14,7 +14,7 @@ namespace PuckevichCore
 
     internal class AudioPlayable
     {
-        private const int WEB_BUFFER_SIZE = 1024 * 8;
+        private const int WEB_BUFFER_SIZE = 1024 * 16;
         private const int READ_PROC_START_THRESHOLD = 1024 * 32;
 
         private readonly BASS_FILEPROCS __BASSFileProcs;
