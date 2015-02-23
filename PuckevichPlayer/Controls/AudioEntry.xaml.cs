@@ -36,15 +36,5 @@ namespace PuckevichPlayer.Controls
             if (handler != null)
                 handler(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        private void SlidInPlaybackBarAnimation_OnCompleted(object sender, EventArgs e)
-        {
-            PlaybackBorder.Margin = new Thickness(0, 50, 0, 0);
-        }
-
-        private void SlidOutPlaybackBarAnimation_OnCompleted(object sender, EventArgs e)
-        {
-            PlaybackBorder.Margin = new Thickness(0, 0, 0, 0);
-        }
     }
 }

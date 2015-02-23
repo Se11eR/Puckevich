@@ -13,32 +13,11 @@
              Style="{StaticResource AudioEntryControlStyle}">
     <UserControl.Resources>
         <ResourceDictionary>
-            <sys:Double x:Key="ThisHeight">85</sys:Double>
+            <sys:Double x:Key="ThisHeight">76</sys:Double>
             <sampleData:StubAudioModel x:Key="StubAudioModel"/>
             <conv:IntToDurationConverter x:Key="IntToDurationConverter" />
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-            <Storyboard x:Key="SlidInPlaybackBarAnimation">
-                <ThicknessAnimation 
-                            Storyboard.TargetProperty="Margin"
-                            To="0 50 0 0"
-                            Completed="SlidInPlaybackBarAnimation_OnCompleted"
-                            Duration="0:0:1" FillBehavior="Stop">
-                    <ThicknessAnimation.EasingFunction>
-                        <SineEase EasingMode="EaseIn"></SineEase>
-                    </ThicknessAnimation.EasingFunction>
-                </ThicknessAnimation>
-            </Storyboard>
-            <Storyboard x:Key="SlidOutPlaybackBarAnimation">
-                <ThicknessAnimation 
-                            Storyboard.TargetProperty="Margin"
-                            To="0 0 0 0" 
-                            Completed="SlidOutPlaybackBarAnimation_OnCompleted"
-                            Duration="0:0:1" FillBehavior="Stop">
-                    <ThicknessAnimation.EasingFunction>
-                        <SineEase EasingMode="EaseOut"></SineEase>
-                    </ThicknessAnimation.EasingFunction>
-                </ThicknessAnimation>
-            </Storyboard>
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary 
                   Source="AudioEntryStyles.xaml">
@@ -62,24 +41,7 @@
                 BorderBrush="{StaticResource ThatLightGrayColorBrush}"
                 Name="PlaybackBorder"
                 Height="{StaticResource ThisHeight}">
-            <Border.Style>
-                <Style>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding AudioState}" 
-                                     Value="Playing">
-                            <DataTrigger.EnterActions>
-                                <BeginStoryboard Storyboard="{StaticResource SlidInPlaybackBarAnimation}" />
-                            </DataTrigger.EnterActions>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding AudioState}" 
-                                     Value="Stopped">
-                            <DataTrigger.EnterActions>
-                                <BeginStoryboard Storyboard="{StaticResource SlidOutPlaybackBarAnimation}" />
-                            </DataTrigger.EnterActions>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
+            
         </Border>
         <Border BorderThickness="0 0 0 0" 
                 VerticalAlignment="Top">
@@ -114,11 +76,21 @@
                     <TextBlock Text="Cached"
                                FontSize="14"
                                FontWeight="Light"
-                               Visibility="{Binding IsCached, Converter={StaticResource BoolToVisibilityConverter}}"
                                Foreground="{StaticResource ThatGrayColorBrush}"
                                Margin="0 0 4 0"
                                VerticalAlignment="Bottom"
-                               HorizontalAlignment="Center"/>
+                               HorizontalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCached}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"></Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </Grid>
             </Grid>
         </Border>
