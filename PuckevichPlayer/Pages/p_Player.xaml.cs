@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,7 +26,7 @@ namespace PuckevichPlayer
     public partial class p_Player : Page, INotifyPropertyChanged
     {
         private IList<AudioModel> __List;
-        private AudioModel __CurrentActive;
+        private volatile AudioModel __CurrentActive;
 
         public p_Player(IList<AudioModel> list)
         {
@@ -67,9 +66,12 @@ namespace PuckevichPlayer
             if (audioModel == null)
                 return;
 
+            if (audioModel.IsTaskProgress)
+                return;
+
             if (__CurrentActive == null)
             {
-                __CurrentActive = audioModel;
+                Interlocked.Exchange(ref __CurrentActive, audioModel);
             }
             else
             {
@@ -83,11 +85,11 @@ namespace PuckevichPlayer
                             break;
                         case PlayingState.Paused:
                             await __CurrentActive.StopAsync();
-                            __CurrentActive = audioModel;
+                            Interlocked.Exchange(ref __CurrentActive, audioModel);
                             break;
                         case PlayingState.Playing:
                             await __CurrentActive.StopAsync();
-                            __CurrentActive = audioModel;
+                            Interlocked.Exchange(ref __CurrentActive, audioModel);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -98,10 +100,10 @@ namespace PuckevichPlayer
                     switch (audioModel.AudioState)
                     {
                         case PlayingState.NotInit:
-                            __CurrentActive = null;
+                            Interlocked.Exchange(ref __CurrentActive, null);
                             break;
                         case PlayingState.Stopped:
-                            __CurrentActive = null;
+                            Interlocked.Exchange(ref __CurrentActive, null);
                             break;
                     }
                 }
@@ -109,5 +111,7 @@ namespace PuckevichPlayer
 
             await audioModel.AudioEntryClickedAsync();
         }
+
+        
     }
 }

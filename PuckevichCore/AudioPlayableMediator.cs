@@ -46,29 +46,12 @@ namespace PuckevichCore
                 handler(this);
         }
 
-        private void CheckInit(bool checkStop = true)
-        {
-            if (!__InternalPlayable.TasksInitialized)
-            {
-                __InternalPlayable.Init();
-            }
-        }
-
         private async Task CheckInitAsync(bool checkStop = true)
         {
             if (!__InternalPlayable.TasksInitialized)
             {
                 await __InternalPlayable.InitAsync();
             }
-        }
-
-        public void Play()
-        {
-            if (__State == PlayingState.Playing)
-                return;
-
-            CheckInit();
-            WhenPlay();
         }
 
         public async Task PlayAsync()
@@ -86,15 +69,6 @@ namespace PuckevichCore
             __State = PlayingState.Playing;
             OnPlayingStateChanged();
             __PlaybackTimer.Start();
-        }
-
-        public void Pause()
-        {
-            if (__State == PlayingState.Paused)
-                return;
-
-            CheckInit();
-            WhenPause();
         }
 
         public async Task PauseAsync()
