@@ -8,12 +8,12 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              Padding="10 0 0 0"
+             Height="90"
              d:DataContext="{Binding Source={StaticResource StubAudioModel}}"
-             d:DesignWidth="478" 
-             Style="{StaticResource AudioEntryControlStyle}">
+             d:DesignWidth="478" >
     <UserControl.Resources>
         <ResourceDictionary>
-            <sys:Double x:Key="ThisHeight">76</sys:Double>
+            <sys:Double x:Key="ThisHeight">100</sys:Double>
             <sampleData:StubAudioModel x:Key="StubAudioModel"/>
             <conv:IntToDurationConverter x:Key="IntToDurationConverter" />
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
@@ -25,27 +25,38 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
-        <Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="6" Margin="-12 0 0 0" 
+    <Grid Margin="-10 0 0 0">
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Setter Property="Background" Value="Transparent"></Setter>
+                <Style.Triggers>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsMouseOver" Value="True"/>
+                        </MultiTrigger.Conditions>
+                        <Setter Property="Background" Value="{StaticResource ThatLightGrayColorBrush}"/>
+                    </MultiTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
+        <Border HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-12 0 0 0" 
                 BorderThickness="0"
-                Height="{StaticResource ThisHeight}"
+                
                 Style="{StaticResource CurrentTrackBorderStyle}">
         </Border>
         <Border HorizontalAlignment="Left" 
                 Margin="-6 0 0 0"
-                Height="{StaticResource ThisHeight}"
-                BorderThickness="0" VerticalAlignment="Top" Background="{StaticResource ThatLightGrayColorBrush}"
+                
+                BorderThickness="0" VerticalAlignment="Stretch" Background="{StaticResource ThatLightGrayColorBrush}"
                 Style="{StaticResource DownloadedProgressBorderStyle}">
         </Border>
         <Border BorderThickness="0 0 0 1" Background="Transparent" 
-                BorderBrush="{StaticResource ThatLightGrayColorBrush}"
-                Name="PlaybackBorder"
-                Height="{StaticResource ThisHeight}">
-            
+                VerticalAlignment="Stretch"
+                BorderBrush="{StaticResource ThatLightGrayColorBrush}">
         </Border>
         <Border BorderThickness="0 0 0 0" 
-                VerticalAlignment="Top">
-            <Grid Margin="0 0 0 0" Height="{StaticResource ThisHeight}">
+                VerticalAlignment="Center">
+            <Grid Margin="10 0 0 0" >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>

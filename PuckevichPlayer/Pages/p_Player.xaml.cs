@@ -67,45 +67,47 @@ namespace PuckevichPlayer
             if (audioModel == null)
                 return;
 
-            audioModel.AudioEntryClicked();
             if (__CurrentActive == null)
             {
                 __CurrentActive = audioModel;
-                return;
-            }
-
-            if (__CurrentActive != audioModel)
-            {
-                switch (audioModel.AudioState)
-                {
-                    case PlayingState.NotInit:
-                        break;
-                    case PlayingState.Stopped:
-                        break;
-                    case PlayingState.Paused:
-                        await __CurrentActive.StopAsync();
-                        __CurrentActive = audioModel;
-                        break;
-                    case PlayingState.Playing:
-                        await __CurrentActive.StopAsync();
-                        __CurrentActive = audioModel;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
             }
             else
             {
-                switch (audioModel.AudioState)
+                if (__CurrentActive != audioModel)
                 {
-                    case PlayingState.NotInit:
-                        __CurrentActive = null;
-                        break;
-                    case PlayingState.Stopped:
-                        __CurrentActive = null;
-                        break;
+                    switch (__CurrentActive.AudioState)
+                    {
+                        case PlayingState.NotInit:
+                            break;
+                        case PlayingState.Stopped:
+                            break;
+                        case PlayingState.Paused:
+                            await __CurrentActive.StopAsync();
+                            __CurrentActive = audioModel;
+                            break;
+                        case PlayingState.Playing:
+                            await __CurrentActive.StopAsync();
+                            __CurrentActive = audioModel;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+                else
+                {
+                    switch (audioModel.AudioState)
+                    {
+                        case PlayingState.NotInit:
+                            __CurrentActive = null;
+                            break;
+                        case PlayingState.Stopped:
+                            __CurrentActive = null;
+                            break;
+                    }
                 }
             }
+
+            await audioModel.AudioEntryClickedAsync();
         }
     }
 }

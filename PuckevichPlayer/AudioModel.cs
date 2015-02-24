@@ -105,21 +105,21 @@ namespace PuckevichPlayer
             }
         }
 
-        public void AudioEntryClicked()
+        public async Task AudioEntryClickedAsync()
         {
             switch (__Playable.State)
             {
                 case PlayingState.NotInit:
-                    __Playable.Play();
+                    await __Playable.PlayAsync();
                     break;
                 case PlayingState.Stopped:
-                    __Playable.Play();
+                    await __Playable.PlayAsync();
                     break;
                 case PlayingState.Paused:
-                    __Playable.Play();
+                    await __Playable.PlayAsync();
                     break;
                 case PlayingState.Playing:
-                    __Playable.Pause();
+                    await __Playable.PauseAsync();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

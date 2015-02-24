@@ -20,11 +20,13 @@ namespace PuckevichCore
 
         private readonly EventWaitHandle __WriteWaitHandle = new AutoResetEvent(false);
 
-        public ProducerConsumerMemoryStream(ICacheStream cacheStream = null)
+        public ProducerConsumerMemoryStream(ICacheStream cacheStream)
         {
+            if (cacheStream == null)
+                throw new ArgumentNullException("cacheStream");
+
             __InnerStream = new MemoryStream();
-            if (cacheStream != null)
-                __CacheStream = cacheStream;
+            __CacheStream = cacheStream;
             __Lock = new object();
         }
 
@@ -51,79 +53,71 @@ namespace PuckevichCore
             __WriteFinished = false;
         }
 
-        private void SetFlushing()
+        private void SetFlushing(bool value)
         {
             lock (__Lock)
             {
                 __WriteWaitHandle.Set();
-                __IsFlushingNow = true;
+                __IsFlushingNow = value;
             }
         }
 
-        public void CopyToInnerStream()
+        public void LoadToMemory()
         {
-            if (__CacheStream != null)
+            var initialPosition = __CacheStream.Position;
+            var toWrite = __CacheStream.Position;
+            __CacheStream.Position = 0;
+            var buf = new byte[8192];
+
+            int allRead = 0;
+            while (allRead < toWrite)
             {
-                var initialPosition = __CacheStream.Position;
-                var toWrite = __CacheStream.Position;
-                __CacheStream.Position = 0;
-                var buf = new byte[8192];
-
-                int allRead = 0;
-                while (allRead < toWrite)
-                {
-                    int read;
-                    allRead += (read = __CacheStream.Read(buf, 0, buf.Length));
-                    Write(buf, 0, read);
-                }
-
-                __CacheStream.Position = initialPosition;
+                int read;
+                allRead += (read = __CacheStream.Read(buf, 0, buf.Length));
+                Write(buf, 0, read);
             }
+
+            __CacheStream.Position = initialPosition;
         }
 
-        public async Task CopyToInnerStreamAsync()
+        public async Task LoadToMemoryAsync()
         {
-            if (__CacheStream != null)
-            {
-                await Task.Run((Action)CopyToInnerStream);
-            }
+            await Task.Run((Action)LoadToMemory);
         }
 
-        public void FlushToCache(ICacheStream cacheStream)
+        public void FlushToCache()
         {
-            if (cacheStream == null) throw new ArgumentNullException("cacheStream");
+            SetFlushing(true);
 
-            SetFlushing();
-
-            if (__WritePosition > cacheStream.Position)
+            if (__WritePosition > __CacheStream.Position)
             {
-                var toWrite = __WritePosition - cacheStream.Position;
+                var toWrite = __WritePosition - __CacheStream.Position;
                 var buf = new byte[16384];
-                __InnerStream.Position = cacheStream.Position;
+                __InnerStream.Position = __CacheStream.Position;
 
                 int allRead = 0;
                 while (allRead < toWrite)
                 {
                     int read;
                     allRead += (read = __InnerStream.Read(buf, 0, buf.Length));
-                    cacheStream.Write(buf, 0, read);
+                    __CacheStream.Write(buf, 0, read);
                 }
 
-                cacheStream.Flush();
+                __CacheStream.Flush();
             }
+
+            SetFlushing(false);
         }
 
-        public async Task FlushToCacheAsync(ICacheStream cacheStream)
+        public async Task FlushToCacheAsync()
         {
-            if (cacheStream == null) throw new ArgumentNullException("cacheStream");
+            SetFlushing(true);
 
-            SetFlushing();
-
-            if (__WritePosition > cacheStream.Position)
+            if (__WritePosition > __CacheStream.Position)
             {
-                var toWrite = __WritePosition - cacheStream.Position;
+                var toWrite = __WritePosition - __CacheStream.Position;
                 var buf = new byte[16384];
-                __InnerStream.Position = cacheStream.Position;
+                __InnerStream.Position = __CacheStream.Position;
 
                 await Task.Run(() =>
                 {
@@ -132,12 +126,14 @@ namespace PuckevichCore
                     {
                         int read;
                         allRead += (read = __InnerStream.Read(buf, 0, buf.Length));
-                        cacheStream.Write(buf, 0, read);
+                        __CacheStream.Write(buf, 0, read);
                     }
                 });
 
-                await cacheStream.FlushAsync();
+                await __CacheStream.FlushAsync();
             }
+
+            SetFlushing(false);
         }
 
         public int Read(byte[] buffer, int offset, int count)
@@ -180,9 +176,9 @@ namespace PuckevichCore
         public void Dispose()
         {
             if (__InnerStream != null)
-                __InnerStream.Close();
-            //if (__CacheStream != null)
-            //    __CacheStream.Dispose();
+                __InnerStream.Dispose();
+            if (__CacheStream != null)
+                __CacheStream.Dispose();
 
             __WriteWaitHandle.Dispose();
         }

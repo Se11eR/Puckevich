@@ -9,6 +9,7 @@ namespace PuckevichCore
     {
         private readonly AudioPlayable __InternalPlayable;
         private readonly Timer __PlaybackTimer = new Timer(1000);
+        private PlayingState __State = PlayingState.Stopped;
 
         public event PlayingStateChangedEventHandler PlayingStateChanged;
         public event PercentsDownloadedChangedEventHandler PercentsDownloadedChanged;
@@ -47,8 +48,7 @@ namespace PuckevichCore
 
         private void CheckInit(bool checkStop = true)
         {
-            if (__InternalPlayable.State == PlayingState.NotInit
-                || (checkStop && __InternalPlayable.State == PlayingState.Stopped))
+            if (!__InternalPlayable.TasksInitialized)
             {
                 __InternalPlayable.Init();
             }
@@ -56,8 +56,7 @@ namespace PuckevichCore
 
         private async Task CheckInitAsync(bool checkStop = true)
         {
-            if (__InternalPlayable.State == PlayingState.NotInit
-                || (checkStop && __InternalPlayable.State == PlayingState.Stopped))
+            if (!__InternalPlayable.TasksInitialized)
             {
                 await __InternalPlayable.InitAsync();
             }
@@ -65,78 +64,79 @@ namespace PuckevichCore
 
         public void Play()
         {
-            CheckInit();
+            if (__State == PlayingState.Playing)
+                return;
 
+            CheckInit();
             WhenPlay();
         }
 
         public async Task PlayAsync()
         {
-            await CheckInitAsync();
+            if (__State == PlayingState.Playing)
+                return;
 
+            await CheckInitAsync();
             WhenPlay();
         }
 
         private void WhenPlay()
         {
-            if (__InternalPlayable.State != PlayingState.Playing)
-            {
-                __InternalPlayable.Play();
-                OnPlayingStateChanged();
-                __PlaybackTimer.Start();
-            }
+            __InternalPlayable.Play();
+            __State = PlayingState.Playing;
+            OnPlayingStateChanged();
+            __PlaybackTimer.Start();
         }
 
         public void Pause()
         {
-            CheckInit();
+            if (__State == PlayingState.Paused)
+                return;
 
+            CheckInit();
             WhenPause();
         }
 
         public async Task PauseAsync()
         {
-            await CheckInitAsync();
+            if (__State == PlayingState.Paused)
+                return;
 
+            await CheckInitAsync();
             WhenPause();
         }
 
         private void WhenPause()
         {
-            if (__InternalPlayable.State != PlayingState.Paused && __InternalPlayable.State != PlayingState.NotInit)
-            {
-                __InternalPlayable.Pause();
-                OnPlayingStateChanged();
-                __PlaybackTimer.Stop();
-            }
+            __InternalPlayable.Pause();
+            OnPlayingStateChanged();
+            __State = PlayingState.Paused;
+            __PlaybackTimer.Stop();
         }
 
         public void Stop()
         {
-            CheckInit(false);
+            if (__State == PlayingState.Stopped)
+                return;
 
-            if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
-            {
-                __InternalPlayable.Stop();
-                WhenStop();
-            }
+            __InternalPlayable.Stop();
+            WhenStop();
         }
 
         public async Task StopAsync()
         {
-            await CheckInitAsync(false);
+            if (__State == PlayingState.Stopped)
+                return;
 
-            if (__InternalPlayable.State != PlayingState.Stopped && __InternalPlayable.State != PlayingState.NotInit)
-            {
-                await __InternalPlayable.StopAsync();
-                WhenStop();
-            }
+            await __InternalPlayable.StopAsync();
+            WhenStop();
         }
 
         private void WhenStop()
         {
-            OnPlayingStateChanged();
             __PlaybackTimer.Stop();
+            __State = PlayingState.Stopped;
+            OnPlayingStateChanged();
             OnSecondsPlayedChanged();
         }
 
@@ -159,7 +159,7 @@ namespace PuckevichCore
 
         public PlayingState State
         {
-            get { return __InternalPlayable.State; }
+            get { return __State; }
         }
     }
 }

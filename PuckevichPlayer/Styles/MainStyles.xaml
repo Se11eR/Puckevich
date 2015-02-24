@@ -3,15 +3,4 @@
                     xmlns:converters="clr-namespace:PuckevichPlayer.Converters">
     <SolidColorBrush x:Key="ThatGrayColorBrush" Color="DarkGray" />
     <SolidColorBrush x:Key="ThatLightGrayColorBrush" Color="#F0F0F0" />
-    <Style x:Key="AudioEntryControlStyle" TargetType="UserControl">
-        <Setter Property="Background" Value="Transparent"></Setter>
-        <Style.Triggers>
-            <MultiTrigger>
-                <MultiTrigger.Conditions>
-                    <Condition Property="IsMouseOver" Value="True"/>
-                </MultiTrigger.Conditions>
-                <Setter Property="Background" Value="{StaticResource ThatLightGrayColorBrush}"/>
-            </MultiTrigger>
-        </Style.Triggers>
-    </Style>
 </ResourceDictionary>
