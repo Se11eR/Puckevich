@@ -80,11 +80,6 @@ namespace PuckevichCore
             __CacheStream.Position = initialPosition;
         }
 
-        public async Task LoadToMemoryAsync()
-        {
-            await Task.Run((Action)LoadToMemory);
-        }
-
         public void FlushToCache()
         {
             SetFlushing(true);

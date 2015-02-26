@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using PuckevichCore.Interfaces;
@@ -18,7 +15,7 @@ namespace PuckevichCore
         private const int WEB_BUFFER_SIZE = 1024 * 16;
         private const int READ_PROC_START_THRESHOLD = 1024 * 32;
 
-        private readonly BASS_FILEPROCS __BASSFileProcs;
+        private readonly BASS_FILEPROCS __BassFileProcs;
         private readonly SYNCPROC __EndStreamProc;
 
         private readonly IAudio __Audio;
@@ -33,8 +30,8 @@ namespace PuckevichCore
         private double __DownloadedFracion;
         private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
 
-        private bool __TasksInitialized = false;
-        private volatile bool __RequestTasksStop = false;
+        private bool __TasksInitialized;
+        private volatile bool __RequestTasksStop;
 
         public event Action DownloadedFracionChanged;
         public event Action AudioNaturallyEnded;
@@ -46,12 +43,12 @@ namespace PuckevichCore
             __Downloader = downloader;
             __Url = url;
 
-            __BASSFileProcs = new BASS_FILEPROCS((IntPtr user) => { },
-                                                 (IntPtr user) => 0,
+            __BassFileProcs = new BASS_FILEPROCS(user => { },
+                                                 user => 0,
                                                  ProducerConsumerReadProc,
-                                                 (long offset, IntPtr user) => false);
+                                                 (offset, user) => false);
 
-            __EndStreamProc = (int handle, int channel, int data, IntPtr user) =>
+            __EndStreamProc = (handle, channel, data, user) =>
             {
                 __RequestTasksStop = true;
                 FlushAndCleanAfterStop();
@@ -76,24 +73,6 @@ namespace PuckevichCore
             var handler = AudioNaturallyEnded;
             if (handler != null)
                 handler();
-        }
-
-        private async Task FlushAndCleanAfterStopAsync()
-        {
-            switch (__CacheStream.Status)
-            {
-                case AudioStorageStatus.Stored:
-
-                    break;
-                case AudioStorageStatus.PartiallyStored:
-                case AudioStorageStatus.NotStored:
-                    await __ProducerConsumerStream.FlushToCacheAsync().ConfigureAwait(false);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            CleanActions();
         }
 
         private void FlushAndCleanAfterStop()
@@ -250,15 +229,15 @@ namespace PuckevichCore
             }
         }
 
-        public async Task InitAsync()
+        public void Init()
         {
-            __CacheStream = await __Storage.GetCacheStreamAsync(__Audio).ConfigureAwait(false);
+            __CacheStream = __Storage.GetCacheStream(__Audio);
 
             switch (__CacheStream.Status)
             {
                 case AudioStorageStatus.Stored:
                     __ProducerConsumerStream = new ProducerConsumerMemoryStream(__CacheStream);
-                    await __ProducerConsumerStream.LoadToMemoryAsync();
+                    __ProducerConsumerStream.LoadToMemory();
                     __ProducerConsumerStream.WriteFinished = true;
                     DownloadedFracion = 1.0;
 
@@ -272,14 +251,10 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
             __TasksInitialized = true;
-            await
-                Task.Run(
-                         () =>
-                         __BassStream =
-                         Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
-                                                        BASSFlag.BASS_DEFAULT,
-                                                        __BASSFileProcs,
-                                                        IntPtr.Zero));
+            __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
+                                                          BASSFlag.BASS_DEFAULT,
+                                                          __BassFileProcs,
+                                                          IntPtr.Zero);
 
             WhenInit();
         }
@@ -323,12 +298,6 @@ namespace PuckevichCore
         {
             StreamStopTasksWait();
             FlushAndCleanAfterStop();
-        }
-
-        public async Task StopAsync()
-        {
-            StreamStopTasksWait();
-            await FlushAndCleanAfterStopAsync();
         }
 
         public double DownloadedFracion

@@ -46,20 +46,20 @@ namespace PuckevichCore
                 handler(this);
         }
 
-        private async Task CheckInitAsync(bool checkStop = true)
+        private void CheckInit()
         {
             if (!__InternalPlayable.TasksInitialized)
             {
-                await __InternalPlayable.InitAsync();
+                __InternalPlayable.Init();
             }
         }
 
-        public async Task PlayAsync()
+        public void Play()
         {
             if (__State == PlayingState.Playing)
                 return;
 
-            await CheckInitAsync();
+            CheckInit();
             WhenPlay();
         }
 
@@ -71,20 +71,20 @@ namespace PuckevichCore
             __PlaybackTimer.Start();
         }
 
-        public async Task PauseAsync()
+        public void Pause()
         {
             if (__State == PlayingState.Paused)
                 return;
 
-            await CheckInitAsync();
+            CheckInit();
             WhenPause();
         }
 
         private void WhenPause()
         {
             __InternalPlayable.Pause();
-            OnPlayingStateChanged();
             __State = PlayingState.Paused;
+            OnPlayingStateChanged();
             __PlaybackTimer.Stop();
         }
 
@@ -94,15 +94,6 @@ namespace PuckevichCore
                 return;
 
             __InternalPlayable.Stop();
-            WhenStop();
-        }
-
-        public async Task StopAsync()
-        {
-            if (__State == PlayingState.Stopped)
-                return;
-
-            await __InternalPlayable.StopAsync();
             WhenStop();
         }
 

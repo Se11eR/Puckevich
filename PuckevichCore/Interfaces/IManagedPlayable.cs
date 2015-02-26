@@ -8,14 +8,11 @@ namespace PuckevichCore.Interfaces
 
     public interface IManagedPlayable
     {
+        void Play();
 
-        Task PlayAsync();
-
-        Task PauseAsync();
+        void Pause();
 
         void Stop();
-
-        Task StopAsync();
 
         int SecondsPlayed { get; }
 

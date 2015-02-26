@@ -19,7 +19,6 @@ namespace PuckevichPlayer
         private PlayingState __PlayingState;
         private int __TimePlayed;
         private double __Downloaded;
-        private volatile int __IsTaskProgress = 0;
 
         public AudioModel(IAudio internalAudio)
         {
@@ -32,18 +31,6 @@ namespace PuckevichPlayer
             __InternalAudio.Playable.SecondsPlayedChanged += sender => TimePlayed = sender.SecondsPlayed;
 
             __Downloaded = __InternalAudio.Playable.PercentsDownloaded;
-        }
-
-        private async Task CheckTaskProgress()
-        {
-            if (__IsTaskProgress > 0)
-            {
-                await Task.Run(() =>
-                {
-                    while (__IsTaskProgress > 0)
-                        Thread.Sleep(1);
-                });
-            }
         }
 
         public string Title
@@ -119,49 +106,33 @@ namespace PuckevichPlayer
             }
         }
 
-        public bool IsTaskProgress
+        public void AudioEntryClicked()
         {
-            get
-            {
-                return __IsTaskProgress > 0;
-            }
-        }
-
-        public async Task AudioEntryClickedAsync()
-        {
-            await CheckTaskProgress();
-
-            Interlocked.Exchange(ref __IsTaskProgress, 1);
             switch (__Playable.State)
             {
                 case PlayingState.NotInit:
-                    await __Playable.PlayAsync();
+                    __Playable.Play();
                     break;
                 case PlayingState.Stopped:
-                    await __Playable.PlayAsync();
+                    __Playable.Play();
                     break;
                 case PlayingState.Paused:
-                    await __Playable.PlayAsync();
+                    __Playable.Play();
                     break;
                 case PlayingState.Playing:
-                    await __Playable.PauseAsync();
+                    __Playable.Pause();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            Interlocked.Exchange(ref __IsTaskProgress, 0);
         }
 
-        public async Task StopAsync()
+        public void Stop()
         {
-            await CheckTaskProgress();
-
-            Interlocked.Exchange(ref __IsTaskProgress, 1);
             if (__Playable.State != PlayingState.Stopped)
             {
-                await __Playable.StopAsync();
+                 __Playable.Stop();
             }
-            Interlocked.Exchange(ref __IsTaskProgress, 0);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

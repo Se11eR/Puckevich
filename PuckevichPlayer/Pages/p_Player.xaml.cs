@@ -27,12 +27,75 @@ namespace PuckevichPlayer
     {
         private IList<AudioModel> __List;
         private volatile AudioModel __CurrentActive;
+        private readonly SemaphoreSlim __ProgressSemaphore = new SemaphoreSlim(1);
 
         public p_Player(IList<AudioModel> list)
         {
             InitializeComponent();
             DataContext = this;
             AudioList = list;
+        }
+
+        private async void AudioEntry_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            await __ProgressSemaphore.WaitAsync();
+            try
+            {
+                if (!(sender is AudioEntry))
+                    return;
+
+                var audioModel = (sender as AudioEntry).DataContext as AudioModel;
+                if (audioModel == null)
+                    return;
+
+                if (__CurrentActive == null)
+                {
+                    Interlocked.Exchange(ref __CurrentActive, audioModel);
+                }
+                else
+                {
+                    if (__CurrentActive != audioModel)
+                    {
+                        switch (__CurrentActive.AudioState)
+                        {
+                            case PlayingState.NotInit:
+                                break;
+                            case PlayingState.Stopped:
+                                break;
+                            case PlayingState.Paused:
+                            case PlayingState.Playing:
+                                __CurrentActive.Stop();
+                                __CurrentActive = audioModel;
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    }
+                    else
+                    {
+                        switch (audioModel.AudioState)
+                        {
+                            case PlayingState.NotInit:
+                            case PlayingState.Stopped:
+                                __CurrentActive = null;
+                                break;
+                        }
+                    }
+                }
+
+                audioModel.AudioEntryClicked();
+            }
+            finally
+            {
+                __ProgressSemaphore.Release();
+            }
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+                handler(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public IList<AudioModel> AudioList
@@ -49,69 +112,6 @@ namespace PuckevichPlayer
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-                handler(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        private async void AudioEntry_OnMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (!(sender is AudioEntry))
-                return;
-
-            var audioModel = (sender as AudioEntry).DataContext as AudioModel;
-            if (audioModel == null)
-                return;
-
-            if (audioModel.IsTaskProgress)
-                return;
-
-            if (__CurrentActive == null)
-            {
-                Interlocked.Exchange(ref __CurrentActive, audioModel);
-            }
-            else
-            {
-                if (__CurrentActive != audioModel)
-                {
-                    switch (__CurrentActive.AudioState)
-                    {
-                        case PlayingState.NotInit:
-                            break;
-                        case PlayingState.Stopped:
-                            break;
-                        case PlayingState.Paused:
-                            await __CurrentActive.StopAsync();
-                            Interlocked.Exchange(ref __CurrentActive, audioModel);
-                            break;
-                        case PlayingState.Playing:
-                            await __CurrentActive.StopAsync();
-                            Interlocked.Exchange(ref __CurrentActive, audioModel);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                }
-                else
-                {
-                    switch (audioModel.AudioState)
-                    {
-                        case PlayingState.NotInit:
-                            Interlocked.Exchange(ref __CurrentActive, null);
-                            break;
-                        case PlayingState.Stopped:
-                            Interlocked.Exchange(ref __CurrentActive, null);
-                            break;
-                    }
-                }
-            }
-
-            await audioModel.AudioEntryClickedAsync();
-        }
-
-        
     }
+
 }
