@@ -5,23 +5,22 @@ using System.Windows.Data;
 
 namespace PuckevichPlayer.Converters
 {
-    public class DownloadedPercentsToRatioWidthConverter : IMultiValueConverter
+    public class PlaybackProgressConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             try
             {
-                if (values.Length != 3)
+                if (values.Length != 2)
                     return 0.0;
 
-                if (!(values[0] is double && values[1] is double && values[2] is Thickness))
+                if (!(values[0] is int && values[1] is int))
                     return 0.0;
 
-                var downloadedPercents = (double)values[0];
-                var controlWidth = (double)values[1];
-                var offset = Math.Abs(((Thickness)values[2]).Left);
+                var timePlayed = (int)values[0];
+                var duration = (int)values[1];
 
-                return ((downloadedPercents / 100) * controlWidth) + offset;
+                return (((double)timePlayed) / duration) * 100;
             }
             catch (Exception)
             {

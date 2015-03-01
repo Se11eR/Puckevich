@@ -6,9 +6,11 @@
              xmlns:conv="clr-namespace:PuckevichPlayer.Converters"
              xmlns:sampleData="clr-namespace:PuckevichPlayer.Controls.SampleData"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:controls="clr-namespace:PuckevichPlayer.Controls"
              mc:Ignorable="d" 
              Padding="10 0 0 0"
-             Height="90"
+             Height="85"
              d:DataContext="{Binding Source={StaticResource StubAudioModel}}"
              d:DesignWidth="478" >
     <UserControl.Resources>
@@ -17,8 +19,9 @@
             <sampleData:StubAudioModel x:Key="StubAudioModel"/>
             <conv:IntToDurationConverter x:Key="IntToDurationConverter" />
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-
+            <conv:PlaybackProgressConverter x:Key="PlaybackProgressConverter" />
             <ResourceDictionary.MergedDictionaries>
+                
                 <ResourceDictionary 
                   Source="AudioEntryStyles.xaml">
                 </ResourceDictionary>
@@ -26,7 +29,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid Margin="-10 0 0 0">
-        <Grid.Style>
+        <!--<Grid.Style>
             <Style TargetType="Grid">
                 <Setter Property="Background" Value="Transparent"></Setter>
                 <Style.Triggers>
@@ -38,34 +41,37 @@
                     </MultiTrigger>
                 </Style.Triggers>
             </Style>
-        </Grid.Style>
+        </Grid.Style>-->
         <Border HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-12 0 0 0" 
                 BorderThickness="0"
                 
                 Style="{StaticResource CurrentTrackBorderStyle}">
         </Border>
-        <Border HorizontalAlignment="Left" 
-                Margin="-6 0 0 0"
-                
-                BorderThickness="0" VerticalAlignment="Stretch" Background="{StaticResource ThatLightGrayColorBrush}"
-                Style="{StaticResource DownloadedProgressBorderStyle}">
-        </Border>
+        
         <Border BorderThickness="0 0 0 1" Background="Transparent" 
                 VerticalAlignment="Stretch"
                 BorderBrush="{StaticResource ThatLightGrayColorBrush}">
         </Border>
         <Border BorderThickness="0 0 0 0" 
-                VerticalAlignment="Center">
-            <Grid Margin="10 0 0 0" >
+                VerticalAlignment="Top">
+            <Grid Margin="10 0 10 0" >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="100"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding Title}"
+                <!--<Border HorizontalAlignment="Left" 
+                        Grid.RowSpan="2"
+                        Grid.ColumnSpan="2"
+                        Margin="-16 0 -10 4"
+                        BorderThickness="0" VerticalAlignment="Stretch" Background="{StaticResource ThatLightGrayColorBrush}"
+                        Style="{StaticResource DownloadedProgressBorderStyle}" />-->
+                <TextBlock Grid.Row="0"
+                       Text="{Binding Title}"
                        Margin="0 4 0 -1"
                        FontWeight="SemiBold"
                        Style="{StaticResource AudioNameText}" />
@@ -74,9 +80,7 @@
                        Margin="0 -1 0 4"
                        FontSize="20"
                        Style="{StaticResource AudioNameText}" />
-                <Grid Grid.Row="0" 
-                                Grid.RowSpan="2" 
-                                Grid.Column="1">
+                <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="0 0 -10 0">
                     <ContentControl 
                                     Style="{StaticResource AudioEntryPlayPauseRightIndicator}" />
                     <TextBlock 
@@ -103,6 +107,24 @@
                         </TextBlock.Style>
                     </TextBlock>
                 </Grid>
+                <controls:SliderWithProgress 
+                    Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
+                    Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"
+                    Margin="0 2 0 0"
+                    Minimum="0"
+                    Maximum="100"
+                    Background="{StaticResource ThatLightGrayColorBrush}"
+                    ProgressBackground="{StaticResource ThatGrayColorBrush}"
+                    ProgressPercents="{Binding DataContext.Downloaded, 
+                        Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
+                    HorizontalAlignment="Stretch" >
+                   <Slider.Value>
+                        <MultiBinding Mode="OneWay" Converter="{StaticResource PlaybackProgressConverter}">
+                            <Binding Path="TimePlayed"/>
+                            <Binding Path="Duration"/>
+                        </MultiBinding>
+                    </Slider.Value>
+                </controls:SliderWithProgress>
             </Grid>
         </Border>
     </Grid>
