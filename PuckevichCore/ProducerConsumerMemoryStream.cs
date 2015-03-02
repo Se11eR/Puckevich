@@ -103,50 +103,22 @@ namespace PuckevichCore
 
             SetFlushing(false);
         }
-
-        public async Task FlushToCacheAsync()
-        {
-            SetFlushing(true);
-
-            if (__WritePosition > __CacheStream.Position)
-            {
-                var toWrite = __WritePosition - __CacheStream.Position;
-                var buf = new byte[16384];
-                __InnerStream.Position = __CacheStream.Position;
-
-                await Task.Run(() =>
-                {
-                    int allRead = 0;
-                    while (allRead < toWrite)
-                    {
-                        int read;
-                        allRead += (read = __InnerStream.Read(buf, 0, buf.Length));
-                        __CacheStream.Write(buf, 0, read);
-                    }
-                });
-
-                await __CacheStream.FlushAsync();
-            }
-
-            SetFlushing(false);
-        }
-
         public int Read(byte[] buffer, int offset, int count)
         {
-            int red;
+            int read;
             lock (__Lock)
             {
                 if (__IsFlushingNow)
                     return 0;
 
                 __InnerStream.Position = __ReadPosition;
-                red = __InnerStream.Read(buffer, offset, count);
+                read = __InnerStream.Read(buffer, offset, count);
                 __ReadPosition = __InnerStream.Position;
             }
-            if (!WriteFinished && red == 0)
+            if (!WriteFinished && read == 0)
                 __WriteWaitHandle.WaitOne();
 
-            return red;
+            return read;
         }
 
         public void Write(byte[] buffer, int offset, int count)

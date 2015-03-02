@@ -12,15 +12,14 @@ namespace PuckevichCore
 
     internal class AudioPlayable
     {
-        private const int WEB_BUFFER_SIZE = 1024 * 16;
-        private const int READ_PROC_START_THRESHOLD = 1024 * 32;
+        private const int WEB_BUFFER_SIZE = 1024 * 32;
 
         private readonly BASS_FILEPROCS __BassFileProcs;
         private readonly SYNCPROC __EndStreamProc;
 
         private readonly IAudio __Audio;
         private readonly IAudioStorage __Storage;
-        private readonly EventWaitHandle __WebHandle = new ManualResetEvent(false);
+        //private readonly EventWaitHandle __WebHandle = new ManualResetEvent(false);
         private Task __WebDownloaderTask;
         private readonly IWebDownloader __Downloader;
         private readonly Uri __Url;
@@ -30,6 +29,7 @@ namespace PuckevichCore
         private double __DownloadedFracion;
         private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
 
+        private volatile bool __ThresholdDownloaded = false;
         private bool __TasksInitialized;
         private volatile bool __RequestTasksStop;
 
@@ -96,8 +96,6 @@ namespace PuckevichCore
         private void CleanActions()
         {
             __PlayingStopwatch.Reset();
-            __WebHandle.Set();
-            __WebHandle.Reset();
             __ProducerConsumerStream.Dispose();
             __ProducerConsumerStream = null;
         }
@@ -114,6 +112,7 @@ namespace PuckevichCore
             }
             __RequestTasksStop = false;
             __TasksInitialized = false;
+            __ThresholdDownloaded = false;
         }
 
         private void WebDownloader()
@@ -141,7 +140,6 @@ namespace PuckevichCore
                     return;
 
                 __ProducerConsumerStream = new ProducerConsumerMemoryStream(__CacheStream);
-
                 __ProducerConsumerStream.LoadToMemory();
 
                 if (__RequestTasksStop)
@@ -163,10 +161,9 @@ namespace PuckevichCore
                     if (__RequestTasksStop)
                         return;
 
-                    if (blockRead >= READ_PROC_START_THRESHOLD)
+                    if (blockRead >= WEB_BUFFER_SIZE)
                     {
-                        blockRead = 0;
-                        __WebHandle.Set();
+                        __ThresholdDownloaded = true;
                     }
 
                     if (__CacheStream == null)
@@ -183,19 +180,20 @@ namespace PuckevichCore
                 if (webStream != null)
                     webStream.Dispose();
                 __ProducerConsumerStream.WriteFinished = true;
-                __WebHandle.Set();
             }
         }
 
         private int ProducerConsumerReadProc(IntPtr buffer, int length, IntPtr user)
         {
-            if (__ProducerConsumerStream == null || !__ProducerConsumerStream.WriteFinished)
-                __WebHandle.WaitOne();
-
             if (__RequestTasksStop)
                 return 0;
 
-            __WebHandle.Reset();
+            if (__ProducerConsumerStream == null)
+            {
+                while (__ProducerConsumerStream == null && !__RequestTasksStop)
+                    Thread.Sleep(1);
+            }
+
             if (__ProducerConsumerStream == null)
                 throw new ApplicationException("ProducerConsumerReadProc: __ProducerConsumerStream == null");
 
@@ -204,28 +202,37 @@ namespace PuckevichCore
 
             try
             {
-                var readbuffer = new byte[length];
                 var toRead = length;
 
-                while (toRead > 0)
+                var readbuffer = new byte[toRead];
+                var read = 0;
+                while (read < toRead)
                 {
                     if (__RequestTasksStop)
                         return 0;
 
-                    int lengthRead = __ProducerConsumerStream.Read(readbuffer, 0, toRead);
+                    int lengthRead = __ProducerConsumerStream.Read(readbuffer, 0, toRead - read);
                     if (lengthRead > 0)
-                        Marshal.Copy(readbuffer, 0, buffer, lengthRead);
+                        Marshal.Copy(readbuffer, 0, buffer + read, lengthRead);
                     else if (lengthRead == 0 && __ProducerConsumerStream.WriteFinished)
                         //Тогда поток автоматически "остановится" и вызовется сооветствующий хендлер
                         return 0;
+                    else
+                        Thread.Sleep(1);
 
-                    toRead -= lengthRead;
+                    read += lengthRead;
+                   // Debug.WriteLine(String.Format("Requst: {0}, read: {1}", toRead, lengthRead));
                 }
-                return length;
+
+                return toRead;
             }
             catch
             {
                 return 0;
+            }
+            finally
+            {
+                //Debug.WriteLine("***\n");
             }
         }
 
@@ -263,6 +270,10 @@ namespace PuckevichCore
         {
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
+
+            while (!__ThresholdDownloaded)
+                Thread.Sleep(1);
+
             Bass.BASS_ChannelSetSync(__BassStream,
                                      BASSSync.BASS_SYNC_END,
                                      0,
@@ -335,11 +346,6 @@ namespace PuckevichCore
 
             Bass.BASS_StreamFree(__BassStream);
 
-            if (__WebHandle != null)
-            {
-                __WebHandle.Set();
-                __WebHandle.Dispose();
-            }
             if (__ProducerConsumerStream != null)
                 __ProducerConsumerStream.Dispose();
         }
