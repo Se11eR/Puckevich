@@ -112,9 +112,10 @@
                     Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"
                     Margin="0 2 0 0"
                     Minimum="0"
+                    Orientation="Horizontal"
                     Maximum="100"
                     Background="{StaticResource ThatLightGrayColorBrush}"
-                    ProgressBackground="{StaticResource ThatGrayColorBrush}"
+                    ProgressBackground="Red"
                     ProgressPercents="{Binding DataContext.Downloaded, 
                         Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
                     HorizontalAlignment="Stretch" >
