@@ -26,64 +26,61 @@ namespace PuckevichPlayer.Controls
                                         new FrameworkPropertyMetadata(default(SolidColorBrush),
                                                                ProgressBackgroundChanged));
 
-       
+        private readonly Border __ProgressBorder = null;
 
         public SliderWithProgress()
         {
             var style = Application.Current.FindResource("CustomFlatSlider") as Style;
             Style = style;
+
+            __ProgressBorder = ExtractProgressBorder();
         }
 
         private static void ProgressBackgroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            Slider slider;
-            Border border;
-            if (ExtractProgressBorder(d, out slider, out border)) return;
+            var slider = d as SliderWithProgress;
+            if (slider == null || slider.__ProgressBorder == null)
+                return;
 
-            border.Background = (SolidColorBrush)e.NewValue;
+            slider.__ProgressBorder.Background = Brushes.Blue;
         }
 
         private static void ProgressChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            Slider slider;
-            Border border;
-            if (ExtractProgressBorder(d, out slider, out border)) return;
+            var slider = d as SliderWithProgress;
+            if (slider == null || slider.__ProgressBorder == null)
+                return;
 
             var valueProgress = (double)slider.GetValue(ValueProperty) / ((double)slider.GetValue(MaximumProperty) -
                                                                           (double)slider.GetValue(MinimumProperty));
             var diff = (double)e.NewValue - valueProgress * 100;
             if (diff > 0)
             {
-                border.Width = (diff / 100) * (double)slider.GetValue(ActualWidthProperty);
+                slider.__ProgressBorder.SetValue(Border.WidthProperty,
+                                                 (diff / 100) * (double)slider.GetValue(ActualWidthProperty));
             }
         }
 
-        private static bool ExtractProgressBorder(DependencyObject d, out Slider slider, out Border border)
+        private Border ExtractProgressBorder()
         {
-            border = null;
-
-            slider = d as Slider;
-            if (slider == null)
-                return true;
-
-            var template = slider.Template.LoadContent() as FrameworkElement;
+            var template = Template.LoadContent() as FrameworkElement;
             if (template == null)
-                return true;
+                return null;
 
             var button = template.FindName("ProgressContainer") as RepeatButton;
             if (button == null)
-                return true;
+                return null;
 
             var template2 = button.Template.LoadContent() as FrameworkElement;
             if (template2 == null)
-                return true;
+                return null;
 
-            border = template2.FindName("ProgressBorder") as Border;
+            var border = template2.FindName("ProgressBorder") as Border;
 
             if (border == null)
-                return true;
+                return null;
 
-            return false;
+            return border;
         }
 
         public SolidColorBrush ProgressBackground

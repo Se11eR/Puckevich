@@ -6,7 +6,7 @@
 
     <ControlTemplate x:Key="TemplateBackgroundHalfTransparent">
         <Grid>
-            <Border Background="Red" Name="ProgressBorder" Width="0"></Border>
+            <Border Background="Red" Name="ProgressBorder" Width="100" HorizontalAlignment="Left"></Border>
             <Border Background="{TemplateBinding Background}" Opacity="0.5" />
         </Grid>
     </ControlTemplate>

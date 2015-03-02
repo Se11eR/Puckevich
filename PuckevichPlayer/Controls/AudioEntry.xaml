@@ -125,6 +125,19 @@
                             <Binding Path="Duration"/>
                         </MultiBinding>
                     </Slider.Value>
+                    <!--<controls:SliderWithProgress.Style>
+                        <Style>
+                            <Setter Property="Background" Value="Transparent"></Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding AudioState}" Value="Playing">
+                                    <Setter Property="Background" Value="Black"></Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding AudioState}" Value="Paused">
+                                    <Setter Property="Background" Value="Black"></Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </controls:SliderWithProgress.Style>-->
                 </controls:SliderWithProgress>
             </Grid>
         </Border>
