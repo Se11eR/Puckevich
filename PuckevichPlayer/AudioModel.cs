@@ -102,7 +102,7 @@ namespace PuckevichPlayer
         {
             get
             {
-                return Math.Abs(__Downloaded - 100.0) < 0.01;
+                return __Downloaded == 100.0;
             }
         }
 
@@ -131,6 +131,8 @@ namespace PuckevichPlayer
         {
             if (__Playable.State != PlayingState.Stopped)
             {
+                if (__Downloaded == 100.0)
+                    __Downloaded = 0;
                  __Playable.Stop();
             }
         }

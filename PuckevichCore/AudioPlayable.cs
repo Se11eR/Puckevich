@@ -221,7 +221,6 @@ namespace PuckevichCore
                         Thread.Sleep(1);
 
                     read += lengthRead;
-                   // Debug.WriteLine(String.Format("Requst: {0}, read: {1}", toRead, lengthRead));
                 }
 
                 return toRead;
@@ -229,10 +228,6 @@ namespace PuckevichCore
             catch
             {
                 return 0;
-            }
-            finally
-            {
-                //Debug.WriteLine("***\n");
             }
         }
 

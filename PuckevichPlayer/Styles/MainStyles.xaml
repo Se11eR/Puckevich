@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:converters="clr-namespace:PuckevichPlayer.Converters">
-    <SolidColorBrush x:Key="ThatGrayColorBrush" Color="DarkGray" />
+    <SolidColorBrush x:Key="ThatDarkGrayColorBrush" Color="DarkGray" />
+    <SolidColorBrush x:Key="ThatGrayColorBrush" Color="#DADADA" />
     <SolidColorBrush x:Key="ThatLightGrayColorBrush" Color="#F0F0F0" />
 </ResourceDictionary>

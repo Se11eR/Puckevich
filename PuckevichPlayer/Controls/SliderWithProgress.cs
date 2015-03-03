@@ -61,12 +61,13 @@ namespace PuckevichPlayer.Controls
                 return;
 
             var w = (double)e.NewValue / 100 * actualWidth;
-            w -= (double)slider.__LeftButton.GetValue(ActualWidthProperty) -
+            w -= (double)slider.__LeftButton.GetValue(ActualWidthProperty) +
                  (double)slider.__Thumb.GetValue(ActualWidthProperty);
 
             if (w > 0 && slider.__DownloadedBar.Value < w)
             {
-                slider.__DownloadedBar.Value = w;
+                slider.__DownloadedBar.Value = 100 * w
+                                               / (double)slider.__DownloadedBar.GetValue(ActualWidthProperty);
             }
         }
 

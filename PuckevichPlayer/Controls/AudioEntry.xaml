@@ -29,19 +29,6 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid Margin="-10 0 0 0">
-        <!--<Grid.Style>
-            <Style TargetType="Grid">
-                <Setter Property="Background" Value="Transparent"></Setter>
-                <Style.Triggers>
-                    <MultiTrigger>
-                        <MultiTrigger.Conditions>
-                            <Condition Property="IsMouseOver" Value="True"/>
-                        </MultiTrigger.Conditions>
-                        <Setter Property="Background" Value="{StaticResource ThatLightGrayColorBrush}"/>
-                    </MultiTrigger>
-                </Style.Triggers>
-            </Style>
-        </Grid.Style>-->
         <Border HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-12 0 0 0" 
                 BorderThickness="0"
                 Style="{StaticResource CurrentTrackBorderStyle}">
@@ -79,12 +66,12 @@
                     <TextBlock 
                            Text="{Binding Duration, Converter={StaticResource IntToDurationConverter}}"
                            FontSize="25"
-                           Foreground="{StaticResource ThatGrayColorBrush}" 
+                           Foreground="{StaticResource ThatDarkGrayColorBrush}" 
                            Style="{StaticResource AudiEntryDurationStyle}" />
                     <TextBlock Text="Cached"
                                FontSize="14"
                                FontWeight="Light"
-                               Foreground="{StaticResource ThatGrayColorBrush}"
+                               Foreground="{StaticResource ThatDarkGrayColorBrush}"
                                Margin="0 0 4 0"
                                VerticalAlignment="Bottom"
                                HorizontalAlignment="Center">
@@ -104,7 +91,7 @@
                         Margin="0 0 0 2">
                     <Border.Style>
                         <Style TargetType="Border">
-                            <Setter Property="Visibility" Value="Collapsed"></Setter>
+                            <Setter Property="Visibility" Value="Hidden"></Setter>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding AudioState}" Value="Playing">
                                     <Setter Property="Visibility" Value="Visible"></Setter>
@@ -117,9 +104,7 @@
                     </Border.Style>
                     <controls:SliderWithProgress 
                     Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
-                        Height="10"
-                    Minimum="0"
-                    Maximum="100"
+                    Height="10"
                     Orientation="Horizontal"
                     Background="{StaticResource ThatLightGrayColorBrush}"
                     ProgressBackground="{StaticResource ThatGrayColorBrush}"
