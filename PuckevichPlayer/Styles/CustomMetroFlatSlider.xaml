@@ -5,10 +5,10 @@
     </ControlTemplate>
 
     <ControlTemplate x:Key="TemplateBackgroundHalfTransparent">
-        <Grid>
-            <Border Background="Red" Name="ProgressBorder" Width="100" HorizontalAlignment="Left"></Border>
-            <Border Background="{TemplateBinding Background}" Opacity="0.5" />
-        </Grid>
+            <ProgressBar Background="{TemplateBinding Background}" 
+                         Minimum="0"
+                         Maximum="100"
+                         Name="Progress" BorderThickness="0" HorizontalAlignment="Stretch" />
     </ControlTemplate>
 
     <Style x:Key="SliderButtonStyle"
@@ -96,10 +96,6 @@
                                MinHeight="{TemplateBinding Slider.MinHeight}" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <!--<Border BorderThickness="0" 
-                    Name="ProgressBorder"
-                    Width="70"
-                    Grid.RowSpan="3" HorizontalAlignment="Left" VerticalAlignment="Stretch" />-->
             <TickBar x:Name="TopTick"
                      Style="{StaticResource SliderTickBarStyle}"
                      Grid.Row="0"
@@ -109,19 +105,21 @@
                 <Track.DecreaseRepeatButton>
                     <RepeatButton Style="{StaticResource SliderButtonStyle}"
                                   Command="Slider.DecreaseLarge"
+                                  x:Name="LeftButton"
                                   Background="{TemplateBinding Slider.Foreground}"
                                   Height="{TemplateBinding Slider.Height}" />
                 </Track.DecreaseRepeatButton>
                 <Track.Thumb>
                     <Thumb Height="{TemplateBinding Slider.Height}"
                            Width="{TemplateBinding Slider.Height}"
+                           x:Name="Thumb"
                            Style="{StaticResource SliderThumbStyle}"
                            Background="{TemplateBinding Slider.BorderBrush}" />
                 </Track.Thumb>
                 <Track.IncreaseRepeatButton>
                     <RepeatButton Style="{StaticResource SliderButtonStyleHalfTransparent}"
                                   Command="Slider.IncreaseLarge"
-                                  Name="ProgressContainer"
+                                  x:Name="RightButton"
                                   Background="{TemplateBinding Slider.Background}"
                                   Height="{TemplateBinding Slider.Height}" />
                 </Track.IncreaseRepeatButton>

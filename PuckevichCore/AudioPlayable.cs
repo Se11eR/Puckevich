@@ -161,7 +161,7 @@ namespace PuckevichCore
                     if (__RequestTasksStop)
                         return;
 
-                    if (blockRead >= WEB_BUFFER_SIZE)
+                    if (blockRead >= WEB_BUFFER_SIZE / 2)
                     {
                         __ThresholdDownloaded = true;
                     }
@@ -271,7 +271,7 @@ namespace PuckevichCore
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
 
-            while (!__ThresholdDownloaded)
+            while (!__ThresholdDownloaded && !__ProducerConsumerStream.WriteFinished)
                 Thread.Sleep(1);
 
             Bass.BASS_ChannelSetSync(__BassStream,

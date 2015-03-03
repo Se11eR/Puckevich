@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
@@ -26,61 +27,62 @@ namespace PuckevichPlayer.Controls
                                         new FrameworkPropertyMetadata(default(SolidColorBrush),
                                                                ProgressBackgroundChanged));
 
-        private readonly Border __ProgressBorder = null;
+        private readonly ProgressBar __DownloadedBar = null;
+        private readonly RepeatButton __LeftButton;
+        private readonly Thumb __Thumb;
 
         public SliderWithProgress()
         {
             var style = Application.Current.FindResource("CustomFlatSlider") as Style;
             Style = style;
 
-            __ProgressBorder = ExtractProgressBorder();
+
+            ExtractProgressBorder(out __DownloadedBar, out __LeftButton, out __Thumb);
         }
 
         private static void ProgressBackgroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var slider = d as SliderWithProgress;
-            if (slider == null || slider.__ProgressBorder == null)
+            if (slider == null || slider.__DownloadedBar == null)
                 return;
 
-            slider.__ProgressBorder.Background = Brushes.Blue;
+            slider.__DownloadedBar.Foreground = (SolidColorBrush)e.NewValue;
         }
 
         private static void ProgressChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var slider = d as SliderWithProgress;
-            if (slider == null || slider.__ProgressBorder == null)
+            if (slider == null || slider.__DownloadedBar == null)
                 return;
 
-            var valueProgress = (double)slider.GetValue(ValueProperty) / ((double)slider.GetValue(MaximumProperty) -
-                                                                          (double)slider.GetValue(MinimumProperty));
-            var diff = (double)e.NewValue - valueProgress * 100;
-            if (diff > 0)
+            var actualWidth = (double)slider.GetValue(ActualWidthProperty);
+
+            if (actualWidth <= 0)
+                return;
+
+            var w = (double)e.NewValue / 100 * actualWidth;
+            w -= (double)slider.__LeftButton.GetValue(ActualWidthProperty) -
+                 (double)slider.__Thumb.GetValue(ActualWidthProperty);
+
+            if (w > 0 && slider.__DownloadedBar.Value < w)
             {
-                slider.__ProgressBorder.SetValue(Border.WidthProperty,
-                                                 (diff / 100) * (double)slider.GetValue(ActualWidthProperty));
+                slider.__DownloadedBar.Value = w;
             }
         }
 
-        private Border ExtractProgressBorder()
+        private void ExtractProgressBorder(out ProgressBar progress, out RepeatButton left, out Thumb thumb)
         {
-            var template = Template.LoadContent() as FrameworkElement;
-            if (template == null)
-                return null;
+            ApplyTemplate();
+            var right = Template.FindName("RightButton", (Slider)this) as RepeatButton;
+            left = Template.FindName("LeftButton", (Slider)this) as RepeatButton;
+            thumb = Template.FindName("Thumb", (Slider)this) as Thumb;
 
-            var button = template.FindName("ProgressContainer") as RepeatButton;
-            if (button == null)
-                return null;
+            progress = null;
+            if (right == null)
+                return;
 
-            var template2 = button.Template.LoadContent() as FrameworkElement;
-            if (template2 == null)
-                return null;
-
-            var border = template2.FindName("ProgressBorder") as Border;
-
-            if (border == null)
-                return null;
-
-            return border;
+            right.ApplyTemplate();
+            progress = right.Template.FindName("Progress", right) as ProgressBar;
         }
 
         public SolidColorBrush ProgressBackground

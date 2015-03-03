@@ -10,7 +10,7 @@
              xmlns:controls="clr-namespace:PuckevichPlayer.Controls"
              mc:Ignorable="d" 
              Padding="10 0 0 0"
-             Height="85"
+             Height="82"
              d:DataContext="{Binding Source={StaticResource StubAudioModel}}"
              d:DesignWidth="478" >
     <UserControl.Resources>
@@ -44,7 +44,6 @@
         </Grid.Style>-->
         <Border HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-12 0 0 0" 
                 BorderThickness="0"
-                
                 Style="{StaticResource CurrentTrackBorderStyle}">
         </Border>
         
@@ -64,12 +63,6 @@
                     <ColumnDefinition />
                     <ColumnDefinition Width="100"/>
                 </Grid.ColumnDefinitions>
-                <!--<Border HorizontalAlignment="Left" 
-                        Grid.RowSpan="2"
-                        Grid.ColumnSpan="2"
-                        Margin="-16 0 -10 4"
-                        BorderThickness="0" VerticalAlignment="Stretch" Background="{StaticResource ThatLightGrayColorBrush}"
-                        Style="{StaticResource DownloadedProgressBorderStyle}" />-->
                 <TextBlock Grid.Row="0"
                        Text="{Binding Title}"
                        Margin="0 4 0 -1"
@@ -107,38 +100,40 @@
                         </TextBlock.Style>
                     </TextBlock>
                 </Grid>
-                <controls:SliderWithProgress 
-                    Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
-                    Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"
-                    Margin="0 2 0 0"
-                    Minimum="0"
-                    Orientation="Horizontal"
-                    Maximum="100"
-                    Background="{StaticResource ThatLightGrayColorBrush}"
-                    ProgressBackground="Red"
-                    ProgressPercents="{Binding DataContext.Downloaded, 
-                        Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
-                    HorizontalAlignment="Stretch" >
-                   <Slider.Value>
-                        <MultiBinding Mode="OneWay" Converter="{StaticResource PlaybackProgressConverter}">
-                            <Binding Path="TimePlayed"/>
-                            <Binding Path="Duration"/>
-                        </MultiBinding>
-                    </Slider.Value>
-                    <!--<controls:SliderWithProgress.Style>
-                        <Style>
-                            <Setter Property="Background" Value="Transparent"></Setter>
+                <Border Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"
+                        Margin="0 0 0 2">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"></Setter>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding AudioState}" Value="Playing">
-                                    <Setter Property="Background" Value="Black"></Setter>
+                                    <Setter Property="Visibility" Value="Visible"></Setter>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding AudioState}" Value="Paused">
-                                    <Setter Property="Background" Value="Black"></Setter>
+                                    <Setter Property="Visibility" Value="Visible"></Setter>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </controls:SliderWithProgress.Style>-->
-                </controls:SliderWithProgress>
+                    </Border.Style>
+                    <controls:SliderWithProgress 
+                    Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
+                        Height="10"
+                    Minimum="0"
+                    Maximum="100"
+                    Orientation="Horizontal"
+                    Background="{StaticResource ThatLightGrayColorBrush}"
+                    ProgressBackground="{StaticResource ThatGrayColorBrush}"
+                    ProgressPercents="{Binding DataContext.Downloaded, 
+                        Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
+                    HorizontalAlignment="Stretch" >
+                        <Slider.Value>
+                            <MultiBinding Mode="OneWay" Converter="{StaticResource PlaybackProgressConverter}">
+                                <Binding Path="TimePlayed"/>
+                                <Binding Path="Duration"/>
+                            </MultiBinding>
+                        </Slider.Value>
+                    </controls:SliderWithProgress>
+                </Border>
             </Grid>
         </Border>
     </Grid>
