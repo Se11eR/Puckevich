@@ -13,6 +13,7 @@ namespace PuckevichCore
     internal class AudioPlayable
     {
         private const int WEB_BUFFER_SIZE = 1024 * 32;
+        private const int BASS_PUSH_BUFFER_SIZE = 64 * 1024;
 
         private readonly BASS_FILEPROCS __BassFileProcs;
         private readonly SYNCPROC __EndStreamProc;
@@ -30,6 +31,7 @@ namespace PuckevichCore
         private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
 
         private volatile bool __ThresholdDownloaded = false;
+        private volatile bool __FirstBytesRead = false;
         private bool __TasksInitialized;
         private volatile bool __RequestTasksStop;
 
@@ -115,7 +117,7 @@ namespace PuckevichCore
             __ThresholdDownloaded = false;
         }
 
-        private void WebDownloader()
+        private void WebDownloaderMethod()
         {
             Stream webStream = null;
             try
@@ -183,6 +185,76 @@ namespace PuckevichCore
             }
         }
 
+        private void BassStreamPusherMethod()
+        {
+            if (__RequestTasksStop)
+                return;
+
+            if (__ProducerConsumerStream == null)
+            {
+                while (!__FirstBytesRead && !__RequestTasksStop)
+                    Thread.Sleep(1);
+            }
+
+            if (__ProducerConsumerStream == null)
+                throw new ApplicationException("ProducerConsumerReadProc: __ProducerConsumerStream == null");
+
+            if (__RequestTasksStop)
+                return;
+
+            var toPush = __ProducerConsumerStream.CacheStreamSize;
+
+            var buffer = new byte[BASS_PUSH_BUFFER_SIZE];
+            var unmanagedBuffer = Marshal.AllocHGlobal(BASS_PUSH_BUFFER_SIZE);
+            
+            var attemptPushSize = buffer.Length;
+
+            var pushed = 0;
+            while (pushed < toPush)
+            {
+                var read = __ProducerConsumerStream.Read(buffer, 0, (int)Math.Min(attemptPushSize, toPush - pushed));
+
+                if (__RequestTasksStop)
+                    return;
+
+                var accepted = Bass.BASS_StreamPutFileData(__BassStream, buffer, read);
+
+                if (accepted < read)
+                {
+                    attemptPushSize = accepted; //adaptive
+
+                    var remaining = read - accepted;
+                    Marshal.Copy(buffer, accepted, unmanagedBuffer, remaining);
+
+                    var unmanagedPushed = 0;
+                    while (unmanagedPushed < remaining)
+                    {
+                        if (__RequestTasksStop)
+                            return;
+
+                        var unmanagedAccepted = Bass.BASS_StreamPutFileData(__BassStream,
+                            unmanagedBuffer + unmanagedPushed, remaining - unmanagedPushed);
+
+                        unmanagedPushed += unmanagedAccepted;
+                    }
+
+                    if (__RequestTasksStop)
+                        return;
+                }
+                else
+                {
+                    attemptPushSize *= 2; //adaptive
+                    if (attemptPushSize > BASS_PUSH_BUFFER_SIZE)
+                        attemptPushSize = BASS_PUSH_BUFFER_SIZE;
+                }
+
+                pushed += read;
+
+                if (__RequestTasksStop)
+                    return;
+            }
+        }
+
         private int ProducerConsumerReadProc(IntPtr buffer, int length, IntPtr user)
         {
             if (__RequestTasksStop)
@@ -246,7 +318,7 @@ namespace PuckevichCore
                     break;
                 case AudioStorageStatus.PartiallyStored:
                 case AudioStorageStatus.NotStored:
-                    __WebDownloaderTask = Task.Run((Action)WebDownloader);
+                    __WebDownloaderTask = Task.Run((Action)WebDownloaderMethod);
 
                     break;
                 default:
