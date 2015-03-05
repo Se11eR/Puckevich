@@ -103,6 +103,7 @@ namespace PuckevichCore
 
             SetFlushing(false);
         }
+
         public int Read(byte[] buffer, int offset, int count)
         {
             int read;
@@ -138,6 +139,11 @@ namespace PuckevichCore
         public long WritePosition
         {
             get { return __WritePosition; }
+        }
+
+        public long ReadPosition
+        {
+            get { return __ReadPosition; }
         }
 
         public void Dispose()

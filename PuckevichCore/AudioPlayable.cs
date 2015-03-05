@@ -24,6 +24,7 @@ namespace PuckevichCore
         //private readonly EventWaitHandle __WebHandle = new ManualResetEvent(false);
         private Task __WebDownloaderTask;
         private Task __BassStreamPusherTask;
+        private Task __StopperTask;
         private readonly IWebDownloader __Downloader;
         private readonly Uri __Url;
         private ICacheStream __CacheStream;
@@ -32,10 +33,10 @@ namespace PuckevichCore
         private double __DownloadedFracion;
         private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
 
-        private volatile bool __ThresholdDownloaded = false;
         private volatile bool __FirstBytesRead = false;
         private bool __TasksInitialized;
         private volatile bool __RequestTasksStop;
+        private object __StopLock = new object();
 
         public event Action DownloadedFracionChanged;
         public event Action AudioNaturallyEnded;
@@ -123,7 +124,6 @@ namespace PuckevichCore
             __RequestTasksStop = false;
             __FirstBytesRead = false;
             __TasksInitialized = false;
-            __ThresholdDownloaded = false;
         }
 
         private void WebDownloaderMethod()
@@ -158,24 +158,21 @@ namespace PuckevichCore
 
                 var buffer = new byte[WEB_BUFFER_SIZE];
 
-                int blockRead = 0;
                 int lengthRead;
 
                 if (__RequestTasksStop)
                     return;
 
+
+                var readAll = 0;
                 while ((lengthRead = webStream.Read(buffer, 0, buffer.Length)) != 0)
                 {
-                    blockRead += lengthRead;
+                    readAll += lengthRead;
+
                     __ProducerConsumerStream.Write(buffer, 0, lengthRead);
 
                     if (__RequestTasksStop)
                         return;
-
-                    if (blockRead >= WEB_BUFFER_SIZE / 2)
-                    {
-                        __ThresholdDownloaded = true;
-                    }
 
                     if (__CacheStream == null)
                         return;
@@ -185,6 +182,10 @@ namespace PuckevichCore
                     if (__RequestTasksStop)
                         return;
                 }
+
+                if (readAll != __CacheStream.AudioSize)
+                    throw new Exception("readAll != __CacheStream.AudioSize");
+
             }
             finally
             {
@@ -226,17 +227,24 @@ namespace PuckevichCore
 
                 var buffer = new byte[bufferSize];
                 var unmanagedBuffer = Marshal.AllocHGlobal(bufferSize);
-            
+
                 var attemptPushSize = buffer.Length;
                 var minPushSize = 512;
 
-                var pushed = 0;
-                while (pushed < toPush)
+                var pushed = __ProducerConsumerStream.ReadPosition;
+                while (pushed < toPush && !__RequestTasksStop)
                 {
                     var read = __ProducerConsumerStream.Read(buffer, 0, (int)Math.Min(attemptPushSize, toPush - pushed));
 
                     if (__RequestTasksStop)
                         return;
+
+                    if (read <= 0)
+                    {
+                        Console.WriteLine("Read: {0}.", read);
+                        Thread.Sleep(10);
+                        continue;
+                    }
 
                     var accepted = Bass.BASS_StreamPutFileData(__BassStream, buffer, read);
 
@@ -288,6 +296,19 @@ namespace PuckevichCore
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                throw;
+            }
+            finally
+            {
+            }
+        }
+
+        public void StopperMethod()
+        {
+            while (!__RequestTasksStop)
+            {
+                if (__PlayingStopwatch.ElapsedMilliseconds >= __Audio.Duration * 1000)
+                    Stop();
             }
         }
 
@@ -379,9 +400,6 @@ namespace PuckevichCore
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
 
-            while (!__ThresholdDownloaded && !__ProducerConsumerStream.WriteFinished)
-                Thread.Sleep(1);
-
             Bass.BASS_ChannelSetSync(__BassStream,
                                      BASSSync.BASS_SYNC_END,
                                      0,
@@ -405,12 +423,21 @@ namespace PuckevichCore
 
         private void StreamStopTasksWait()
         {
-            __RequestTasksStop = true;
-            if (!Bass.BASS_ChannelStop(__BassStream))
-                Error.HandleBASSError("BASS_ChannelStop");
-            Bass.BASS_StreamFree(__BassStream);
+            try
+            {
+                Monitor.TryEnter(__StopLock);
 
-            WaitTasksStop();
+                __RequestTasksStop = true;
+                if (!Bass.BASS_ChannelStop(__BassStream))
+                    Error.HandleBASSError("BASS_ChannelStop");
+                Bass.BASS_StreamFree(__BassStream);
+
+                WaitTasksStop();
+            }
+            finally
+            {
+                Monitor.Exit(__StopLock);
+            }
         }
 
         public void Stop()
