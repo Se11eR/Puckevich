@@ -21,7 +21,12 @@ namespace PuckevichCore
             __InternalPlayable.DownloadedFracionChanged += OnPercentsDownloadedChanged;
             __InternalPlayable.AudioNaturallyEnded += WhenStop;
 
-            __PlaybackTimer.Elapsed += (sender, args) => OnSecondsPlayedChanged();
+            __PlaybackTimer.Elapsed += (sender, args) =>
+            {
+                OnSecondsPlayedChanged();
+                if (__InternalPlayable.SecondsPlayed >= audio.Duration)
+                    Stop();
+            };
             __PlaybackTimer.AutoReset = true;
         }
 

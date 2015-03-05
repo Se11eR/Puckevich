@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using PuckevichCore.Interfaces;
 using Un4seen.Bass;
 
@@ -24,7 +25,6 @@ namespace PuckevichCore
         //private readonly EventWaitHandle __WebHandle = new ManualResetEvent(false);
         private Task __WebDownloaderTask;
         private Task __BassStreamPusherTask;
-        private Task __StopperTask;
         private readonly IWebDownloader __Downloader;
         private readonly Uri __Url;
         private ICacheStream __CacheStream;
@@ -55,7 +55,7 @@ namespace PuckevichCore
 
             __EndStreamProc = (handle, channel, data, user) =>
             {
-                StreamStopTasksWait();
+                Stop();
                 OnAudioNaturallyEnded();
             };
 
@@ -303,12 +303,11 @@ namespace PuckevichCore
             }
         }
 
-        public void StopperMethod()
+        public void StopperMethod(object obj, ElapsedEventArgs args)
         {
-            while (!__RequestTasksStop)
+            if (!__RequestTasksStop)
             {
-                if (__PlayingStopwatch.ElapsedMilliseconds >= __Audio.Duration * 1000)
-                    Stop();
+                Stop();
             }
         }
 
