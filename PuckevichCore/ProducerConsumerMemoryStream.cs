@@ -140,11 +140,6 @@ namespace PuckevichCore
             get { return __WritePosition; }
         }
 
-        public long CacheStreamSize
-        {
-            get { return __CacheStream.AudioSize; }
-        }
-
         public void Dispose()
         {
             if (__InnerStream != null)

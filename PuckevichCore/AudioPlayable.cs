@@ -13,7 +13,8 @@ namespace PuckevichCore
     internal class AudioPlayable
     {
         private const int WEB_BUFFER_SIZE = 1024 * 32;
-        private const int BASS_PUSH_BUFFER_SIZE = 64 * 1024;
+        private const int BASS_PUSH_CACHED_BUFFER_SIZE = 128 * 1024;
+        private const int BASS_PUSH_WEB_BUFFER_SIZE = 64 * 1024;
 
         private readonly BASS_FILEPROCS __BassFileProcs;
         private readonly SYNCPROC __EndStreamProc;
@@ -22,6 +23,7 @@ namespace PuckevichCore
         private readonly IAudioStorage __Storage;
         //private readonly EventWaitHandle __WebHandle = new ManualResetEvent(false);
         private Task __WebDownloaderTask;
+        private Task __BassStreamPusherTask;
         private readonly IWebDownloader __Downloader;
         private readonly Uri __Url;
         private ICacheStream __CacheStream;
@@ -52,8 +54,7 @@ namespace PuckevichCore
 
             __EndStreamProc = (handle, channel, data, user) =>
             {
-                __RequestTasksStop = true;
-                FlushAndCleanAfterStop();
+                StreamStopTasksWait();
                 OnAudioNaturallyEnded();
             };
 
@@ -106,13 +107,21 @@ namespace PuckevichCore
         {
             try
             {
-                Task.WaitAll(__WebDownloaderTask);
-                __WebDownloaderTask.Dispose();
+                if (__WebDownloaderTask != null)
+                {
+                    Task.WaitAll(__WebDownloaderTask, __BassStreamPusherTask);
+                    __WebDownloaderTask.Dispose();
+                }
+                else
+                    Task.WaitAll(__BassStreamPusherTask);
+
+                __BassStreamPusherTask.Dispose();
             }
-            catch (Exception)
-            {
-            }
+            catch
+            { }
+            
             __RequestTasksStop = false;
+            __FirstBytesRead = false;
             __TasksInitialized = false;
             __ThresholdDownloaded = false;
         }
@@ -187,71 +196,98 @@ namespace PuckevichCore
 
         private void BassStreamPusherMethod()
         {
-            if (__RequestTasksStop)
-                return;
-
-            if (__ProducerConsumerStream == null)
+            try
             {
-                while (!__FirstBytesRead && !__RequestTasksStop)
+                if (__RequestTasksStop)
+                    return;
+
+                while (!__FirstBytesRead)
                     Thread.Sleep(1);
-            }
 
-            if (__ProducerConsumerStream == null)
-                throw new ApplicationException("ProducerConsumerReadProc: __ProducerConsumerStream == null");
+                if (__ProducerConsumerStream == null)
+                {
+                    while (__ProducerConsumerStream == null && !__RequestTasksStop)
+                        Thread.Sleep(1);
+                }
 
-            if (__RequestTasksStop)
-                return;
-
-            var toPush = __ProducerConsumerStream.CacheStreamSize;
-
-            var buffer = new byte[BASS_PUSH_BUFFER_SIZE];
-            var unmanagedBuffer = Marshal.AllocHGlobal(BASS_PUSH_BUFFER_SIZE);
-            
-            var attemptPushSize = buffer.Length;
-
-            var pushed = 0;
-            while (pushed < toPush)
-            {
-                var read = __ProducerConsumerStream.Read(buffer, 0, (int)Math.Min(attemptPushSize, toPush - pushed));
+                if (__ProducerConsumerStream == null)
+                    throw new ApplicationException("ProducerConsumerReadProc: __ProducerConsumerStream == null");
 
                 if (__RequestTasksStop)
                     return;
 
-                var accepted = Bass.BASS_StreamPutFileData(__BassStream, buffer, read);
+                var toPush = __CacheStream.AudioSize;
+                int bufferSize;
 
-                if (accepted < read)
+                if (__CacheStream.Status == AudioStorageStatus.Stored)
+                    bufferSize = BASS_PUSH_CACHED_BUFFER_SIZE;
+                else
+                    bufferSize = BASS_PUSH_WEB_BUFFER_SIZE;
+
+                var buffer = new byte[bufferSize];
+                var unmanagedBuffer = Marshal.AllocHGlobal(bufferSize);
+            
+                var attemptPushSize = buffer.Length;
+                var minPushSize = 512;
+
+                var pushed = 0;
+                while (pushed < toPush)
                 {
-                    attemptPushSize = accepted; //adaptive
+                    var read = __ProducerConsumerStream.Read(buffer, 0, (int)Math.Min(attemptPushSize, toPush - pushed));
 
-                    var remaining = read - accepted;
-                    Marshal.Copy(buffer, accepted, unmanagedBuffer, remaining);
+                    if (__RequestTasksStop)
+                        return;
 
-                    var unmanagedPushed = 0;
-                    while (unmanagedPushed < remaining)
+                    var accepted = Bass.BASS_StreamPutFileData(__BassStream, buffer, read);
+
+                    Console.WriteLine("Read: {0}. Accepted: {1}", read, accepted);
+
+                    if (accepted < read)
                     {
+                        Thread.Sleep(50);
+
+                        attemptPushSize = accepted; //adaptive
+                        if (attemptPushSize <= 0)
+                            attemptPushSize = minPushSize;
+
+                        var remaining = read - accepted;
+                        Marshal.Copy(buffer, accepted, unmanagedBuffer, remaining);
+
+                        var unmanagedPushed = 0;
+                        while (unmanagedPushed < remaining)
+                        {
+                            if (__RequestTasksStop)
+                                return;
+
+                            var unmanagedAccepted = Bass.BASS_StreamPutFileData(__BassStream,
+                                unmanagedBuffer + unmanagedPushed, remaining - unmanagedPushed);
+
+                            Thread.Sleep(50);
+
+                            Console.WriteLine("\tUnmanaged accepted: {0}", unmanagedAccepted);
+
+                            unmanagedPushed += unmanagedAccepted;
+                        }
+
                         if (__RequestTasksStop)
                             return;
-
-                        var unmanagedAccepted = Bass.BASS_StreamPutFileData(__BassStream,
-                            unmanagedBuffer + unmanagedPushed, remaining - unmanagedPushed);
-
-                        unmanagedPushed += unmanagedAccepted;
                     }
+                    else
+                    {
+                        attemptPushSize *= 2; //adaptive
+                        if (attemptPushSize > bufferSize)
+                            attemptPushSize = bufferSize;
+                    }
+
+                    pushed += read;
 
                     if (__RequestTasksStop)
                         return;
                 }
-                else
-                {
-                    attemptPushSize *= 2; //adaptive
-                    if (attemptPushSize > BASS_PUSH_BUFFER_SIZE)
-                        attemptPushSize = BASS_PUSH_BUFFER_SIZE;
-                }
-
-                pushed += read;
-
-                if (__RequestTasksStop)
-                    return;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
         }
 
@@ -301,6 +337,10 @@ namespace PuckevichCore
             {
                 return 0;
             }
+            finally
+            {
+                __FirstBytesRead = true;
+            }
         }
 
         public void Init()
@@ -325,11 +365,12 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
             __TasksInitialized = true;
-            __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
+            __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFERPUSH,
                                                           BASSFlag.BASS_DEFAULT,
                                                           __BassFileProcs,
                                                           IntPtr.Zero);
 
+            __BassStreamPusherTask = Task.Run((Action)BassStreamPusherMethod);
             WhenInit();
         }
 
