@@ -114,11 +114,16 @@ namespace PuckevichCore
         }
 
         
-        public int SecondsPlayed
+        public double SecondsPlayed
         {
             get
             {
                 return __InternalPlayable.SecondsPlayed;
+            }
+            set
+            {
+                if (!(__InternalPlayable.SecondsPlayed > value)) return;
+                __InternalPlayable.Seek(value);
             }
         }
 

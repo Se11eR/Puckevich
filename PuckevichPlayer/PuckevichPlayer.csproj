@@ -61,7 +61,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Controls\SampleData\MockAudioModel.cs" />
+    <Compile Include="Controls\SampleData\StubAudioModel.cs" />
     <Compile Include="Controls\SliderWithProgress.cs" />
     <Compile Include="Converters\DownloadedPercentsToRatioWidthConverter.cs" />
     <Compile Include="Converters\PlaybackProgressConverter.cs" />

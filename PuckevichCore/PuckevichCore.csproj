@@ -113,6 +113,7 @@
     <Compile Include="Interfaces\IAudioStorage.cs" />
     <Compile Include="Interfaces\IWebDownloader.cs" />
     <Compile Include="AudioPlayable.cs" />
+    <Compile Include="OffsettedStopwatch.cs" />
     <Compile Include="PlayingState.cs" />
     <Compile Include="ProducerConsumerMemoryStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

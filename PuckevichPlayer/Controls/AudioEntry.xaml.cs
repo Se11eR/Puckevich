@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -35,6 +36,11 @@ namespace PuckevichPlayer.Controls
             var handler = PropertyChanged;
             if (handler != null)
                 handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void PlaybackSlider_OnDragCompleted(object sender, DragCompletedEventArgs e)
+        {
+            ((AudioModel)DataContext).TimePlayed = PlaybackSlider.Value;
         }
     }
 }

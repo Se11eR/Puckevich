@@ -16,22 +16,23 @@ namespace PuckevichCore
 
         private readonly BASS_FILEPROCS __BassFileProcs;
         private readonly SYNCPROC __EndStreamProc;
+        private Task __WebDownloaderTask;
 
         private readonly IAudio __Audio;
         private readonly IAudioStorage __Storage;
-        //private readonly EventWaitHandle __WebHandle = new ManualResetEvent(false);
-        private Task __WebDownloaderTask;
         private readonly IWebDownloader __Downloader;
         private readonly Uri __Url;
         private ICacheStream __CacheStream;
         private ProducerConsumerMemoryStream __ProducerConsumerStream;
         private int __BassStream;
-        private double __DownloadedFracion;
-        private readonly Stopwatch __PlayingStopwatch = new Stopwatch();
+        private readonly StopWatchWithOffset __PlayingStopwatch = new StopWatchWithOffset();
 
+        private double __DownloadedFracion;
         private volatile bool __ThresholdDownloaded = false;
         private bool __TasksInitialized;
         private volatile bool __RequestTasksStop;
+
+        private readonly object __SeekLock = new object();
 
         public event Action DownloadedFracionChanged;
         public event Action AudioNaturallyEnded;
@@ -290,6 +291,24 @@ namespace PuckevichCore
             __PlayingStopwatch.Stop();
         }
 
+        public void Seek(double second)
+        {
+            try
+            {
+                Monitor.TryEnter(__SeekLock);
+                var thetime = Bass.BASS_ChannelSeconds2Bytes(__BassStream, second);
+                if (!Bass.BASS_ChannelSetPosition(__BassStream, thetime, BASSMode.BASS_POS_BYTES))
+                    Error.HandleBASSError("BASS_ChannelPause");
+
+                __PlayingStopwatch.Elapsed = TimeSpan.FromSeconds(second);
+                __PlayingStopwatch.Restart();
+            }
+            finally
+            {
+                Monitor.Exit(__SeekLock);
+            }
+        }
+
         private void StreamStopTasksWait()
         {
             __RequestTasksStop = true;
@@ -316,12 +335,9 @@ namespace PuckevichCore
             }
         }
 
-        public int SecondsPlayed
+        public double SecondsPlayed
         {
-            get
-            {
-                return (int)Math.Round(__PlayingStopwatch.Elapsed.TotalSeconds);
-            }
+            get { return Math.Round(__PlayingStopwatch.Elapsed.TotalSeconds); }
         }
 
         public bool TasksInitialized

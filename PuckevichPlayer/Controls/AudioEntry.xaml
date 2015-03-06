@@ -103,14 +103,16 @@
                         </Style>
                     </Border.Style>
                     <controls:SliderWithProgress 
-                    Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
-                    Height="10"
-                    Orientation="Horizontal"
-                    Background="{StaticResource ThatLightGrayColorBrush}"
-                    ProgressBackground="{StaticResource ThatGrayColorBrush}"
-                    ProgressPercents="{Binding DataContext.Downloaded, 
-                        Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
-                    HorizontalAlignment="Stretch" >
+                        x:Name="PlaybackSlider"
+                        Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
+                        Height="10"
+                        Orientation="Horizontal"
+                        Background="{StaticResource ThatLightGrayColorBrush}"
+                        ProgressBackground="{StaticResource ThatGrayColorBrush}"
+                        Thumb.DragCompleted="PlaybackSlider_OnDragCompleted"
+                        ProgressPercents="{Binding DataContext.Downloaded, 
+                            Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
+                        HorizontalAlignment="Stretch" >
                         <Slider.Value>
                             <MultiBinding Mode="OneWay" Converter="{StaticResource PlaybackProgressConverter}">
                                 <Binding Path="TimePlayed"/>

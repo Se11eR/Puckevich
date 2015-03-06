@@ -14,13 +14,13 @@ namespace PuckevichPlayer.Converters
                 if (values.Length != 2)
                     return 0.0;
 
-                if (!(values[0] is int && values[1] is int))
+                if (!(values[0] is double && values[1] is int))
                     return 0.0;
 
-                var timePlayed = (int)values[0];
+                var timePlayed = (double)values[0];
                 var duration = (int)values[1];
 
-                return (((double)timePlayed) / duration) * 100;
+                return ((timePlayed) / duration) * 100;
             }
             catch (Exception)
             {
@@ -30,7 +30,16 @@ namespace PuckevichPlayer.Converters
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var val = (double)value;
+
+                return new[] {value, 0};
+            }
+            catch (Exception)
+            {
+                return new object[] {0, 0};
+            }
         }
     }
 }

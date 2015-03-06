@@ -14,7 +14,7 @@ namespace PuckevichCore.Interfaces
 
         void Stop();
 
-        int SecondsPlayed { get; }
+        double SecondsPlayed { get; set; }
 
         double PercentsDownloaded { get; }
 

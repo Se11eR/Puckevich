@@ -47,6 +47,10 @@ namespace PuckevichPlayer.Controls.SampleData
             {
                 return 31;
             }
+            set
+            {
+                
+            }
         }
 
         public double Downloaded

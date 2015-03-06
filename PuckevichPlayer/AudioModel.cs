@@ -28,7 +28,7 @@ namespace PuckevichPlayer
             __InternalAudio.Playable.PlayingStateChanged += sender => AudioState = sender.State;
             __InternalAudio.Playable.PercentsDownloadedChanged += 
                 sender => Downloaded = sender.PercentsDownloaded;
-            __InternalAudio.Playable.SecondsPlayedChanged += sender => TimePlayed = sender.SecondsPlayed;
+            __InternalAudio.Playable.SecondsPlayedChanged += sender => OnPropertyChanged("TimePlayed");
 
             __Downloaded = __InternalAudio.Playable.PercentsDownloaded;
         }
@@ -68,19 +68,21 @@ namespace PuckevichPlayer
             {
                 return __InternalAudio.Duration;
             }
+            set
+            {
+            }
         }
 
-        public int TimePlayed
+        public double TimePlayed
         {
             get
             {
                 //new DateTime().AddSeconds(__TimePlayed).ToString("mm:ss");
-                return __TimePlayed;
+                return __Playable.SecondsPlayed;
             }
-            private set
+            set
             {
-                __TimePlayed = value;
-                OnPropertyChanged();
+                __Playable.SecondsPlayed = value;
             }
         }
 
