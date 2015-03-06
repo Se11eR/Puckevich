@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
 using PuckevichCore.Interfaces;
@@ -12,7 +13,8 @@ namespace PuckevichCore
 
     internal class AudioPlayable
     {
-        private const int WEB_BUFFER_SIZE = 1024 * 32;
+        private const int WEB_BUFFER_SIZE = 1024 * 16;
+        private const int WEB_THRESHOLD = 1024 * 128;
 
         private readonly BASS_FILEPROCS __BassFileProcs;
         private readonly SYNCPROC __EndStreamProc;
@@ -28,8 +30,9 @@ namespace PuckevichCore
         private readonly StopWatchWithOffset __PlayingStopwatch = new StopWatchWithOffset();
 
         private double __DownloadedFracion;
-        private volatile bool __ThresholdDownloaded = false;
-        private bool __TasksInitialized;
+        private long __BytesReadToBass = 0;
+        private volatile bool __ThresholdDownloaded;
+        private volatile bool __TasksInitialized;
         private volatile bool __RequestTasksStop;
 
         private readonly object __SeekLock = new object();
@@ -45,9 +48,10 @@ namespace PuckevichCore
             __Url = url;
 
             __BassFileProcs = new BASS_FILEPROCS(user => { },
-                                                 user => 0,
-                                                 ProducerConsumerReadProc,
-                                                 (offset, user) => false);
+                                                 user => 
+                                                     __CacheStream.AudioSize,
+                                                 BassReadProc,
+                                                 (offset, user) => true);
 
             __EndStreamProc = (handle, channel, data, user) =>
             {
@@ -101,7 +105,7 @@ namespace PuckevichCore
             __ProducerConsumerStream = null;
         }
 
-        private void WaitTasksStop()
+        private void WaitAndReset()
         {
             try
             {
@@ -114,6 +118,7 @@ namespace PuckevichCore
             __RequestTasksStop = false;
             __TasksInitialized = false;
             __ThresholdDownloaded = false;
+            __BytesReadToBass = 0;
         }
 
         private void WebDownloader()
@@ -162,15 +167,13 @@ namespace PuckevichCore
                     if (__RequestTasksStop)
                         return;
 
-                    if (blockRead >= WEB_BUFFER_SIZE / 2)
+                    if (blockRead >= WEB_THRESHOLD)
                     {
                         __ThresholdDownloaded = true;
                     }
 
                     if (__CacheStream == null)
                         return;
-
-                    DownloadedFracion = (double)__ProducerConsumerStream.WritePosition / __CacheStream.AudioSize;
 
                     if (__RequestTasksStop)
                         return;
@@ -181,10 +184,11 @@ namespace PuckevichCore
                 if (webStream != null)
                     webStream.Dispose();
                 __ProducerConsumerStream.WriteFinished = true;
+                __ThresholdDownloaded = true;
             }
         }
 
-        private int ProducerConsumerReadProc(IntPtr buffer, int length, IntPtr user)
+        private int BassReadProc(IntPtr buffer, int length, IntPtr user)
         {
             if (__RequestTasksStop)
                 return 0;
@@ -196,7 +200,7 @@ namespace PuckevichCore
             }
 
             if (__ProducerConsumerStream == null)
-                throw new ApplicationException("ProducerConsumerReadProc: __ProducerConsumerStream == null");
+                throw new ApplicationException("BassReadProc: __ProducerConsumerStream == null");
 
             if (__RequestTasksStop)
                 return 0;
@@ -204,7 +208,6 @@ namespace PuckevichCore
             try
             {
                 var toRead = length;
-
                 var readbuffer = new byte[toRead];
                 var read = 0;
                 while (read < toRead)
@@ -230,6 +233,21 @@ namespace PuckevichCore
             {
                 return 0;
             }
+            finally
+            {
+                __BytesReadToBass += length;
+                DownloadedFracion = (double)__BytesReadToBass / __CacheStream.AudioSize;
+            }
+        }
+
+        private bool BassSeekProc(long offset, IntPtr user)
+        {
+            if (offset < __ProducerConsumerStream.WritePosition)
+            {
+                __ProducerConsumerStream.ReadPosition = offset;
+                return true;
+            }
+            return false;
         }
 
         public void Init()
@@ -254,6 +272,13 @@ namespace PuckevichCore
                     throw new ArgumentOutOfRangeException();
             }
             __TasksInitialized = true;
+
+            while (__CacheStream.Status != AudioStorageStatus.Stored && !__ThresholdDownloaded)
+                Thread.Sleep(1);
+
+            if (__RequestTasksStop)
+                return;
+
             __BassStream = Bass.BASS_StreamCreateFileUser(BASSStreamSystem.STREAMFILE_BUFFER,
                                                           BASSFlag.BASS_DEFAULT,
                                                           __BassFileProcs,
@@ -266,9 +291,6 @@ namespace PuckevichCore
         {
             if (__BassStream == 0)
                 Error.HandleBASSError("BASS_StreamCreateFileUser");
-
-            while (!__ThresholdDownloaded && !__ProducerConsumerStream.WriteFinished)
-                Thread.Sleep(1);
 
             Bass.BASS_ChannelSetSync(__BassStream,
                                      BASSSync.BASS_SYNC_END,
@@ -296,12 +318,14 @@ namespace PuckevichCore
             try
             {
                 Monitor.TryEnter(__SeekLock);
-                var thetime = Bass.BASS_ChannelSeconds2Bytes(__BassStream, second);
-                if (!Bass.BASS_ChannelSetPosition(__BassStream, thetime, BASSMode.BASS_POS_BYTES))
-                    Error.HandleBASSError("BASS_ChannelPause");
 
-                __PlayingStopwatch.Elapsed = TimeSpan.FromSeconds(second);
+                var seekByte = Bass.BASS_ChannelSeconds2Bytes(__BassStream, second);
+
+                if (!Bass.BASS_ChannelSetPosition(__BassStream, seekByte, BASSMode.BASS_POS_BYTES))
+                    Error.HandleBASSError("BASS_ChannelSetPosition");
+
                 __PlayingStopwatch.Restart();
+                __PlayingStopwatch.Elapsed = TimeSpan.FromSeconds(second);
             }
             finally
             {
@@ -316,7 +340,7 @@ namespace PuckevichCore
                 Error.HandleBASSError("BASS_ChannelStop");
             Bass.BASS_StreamFree(__BassStream);
 
-            WaitTasksStop();
+            WaitAndReset();
         }
 
         public void Stop()

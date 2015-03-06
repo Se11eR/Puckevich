@@ -24,6 +24,8 @@ namespace PuckevichPlayer.Controls
     /// </summary>
     public partial class AudioEntry : UserControl, INotifyPropertyChanged
     {
+        private bool __IsDraggingNow = false;
+
         public AudioEntry()
         {
             InitializeComponent();
@@ -40,7 +42,21 @@ namespace PuckevichPlayer.Controls
 
         private void PlaybackSlider_OnDragCompleted(object sender, DragCompletedEventArgs e)
         {
-            ((AudioModel)DataContext).TimePlayed = PlaybackSlider.Value;
+            ((AudioModel)DataContext).TimePlayed = PlaybackSlider.Value / 100
+                                                   * ((AudioModel)DataContext).Duration;
+            __IsDraggingNow = false;
+        }
+
+        private void PlaybackSlider_OnDragStarted(object sender, DragStartedEventArgs e)
+        {
+            __IsDraggingNow = true;
+        }
+
+        private void PlaybackSlider_OnTargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if (e.Property.Name == "PseudoValue")
+                if (!__IsDraggingNow)
+                    PlaybackSlider.Value = PlaybackSlider.PseudoValue;
         }
     }
 }

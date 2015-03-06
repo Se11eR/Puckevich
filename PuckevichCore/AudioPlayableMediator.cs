@@ -10,6 +10,7 @@ namespace PuckevichCore
         private readonly AudioPlayable __InternalPlayable;
         private readonly Timer __PlaybackTimer = new Timer(1000);
         private PlayingState __State = PlayingState.Stopped;
+        private int __Duration;
 
         public event PlayingStateChangedEventHandler PlayingStateChanged;
         public event PercentsDownloadedChangedEventHandler PercentsDownloadedChanged;
@@ -21,6 +22,7 @@ namespace PuckevichCore
             __InternalPlayable.DownloadedFracionChanged += OnPercentsDownloadedChanged;
             __InternalPlayable.AudioNaturallyEnded += WhenStop;
 
+            __Duration = audio.Duration;
             __PlaybackTimer.Elapsed += (sender, args) => OnSecondsPlayedChanged();
             __PlaybackTimer.AutoReset = true;
         }
@@ -122,7 +124,9 @@ namespace PuckevichCore
             }
             set
             {
-                if (!(__InternalPlayable.SecondsPlayed > value)) return;
+                if ((__InternalPlayable.DownloadedFracion * __Duration <= value))
+                    return;
+
                 __InternalPlayable.Seek(value);
             }
         }

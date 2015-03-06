@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace PuckevichPlayer.Controls
@@ -26,6 +27,13 @@ namespace PuckevichPlayer.Controls
                                         typeof(SliderWithProgress),
                                         new FrameworkPropertyMetadata(default(SolidColorBrush),
                                                                ProgressBackgroundChanged));
+
+        public static readonly DependencyProperty PseudoValueProperty = DependencyProperty.Register("PseudoValue",
+                                                        typeof(double),
+                                                        typeof(SliderWithProgress),
+                                                        new PropertyMetadata(default(double)));
+
+        
 
         private readonly ProgressBar __DownloadedBar = null;
         private readonly RepeatButton __LeftButton;
@@ -107,6 +115,18 @@ namespace PuckevichPlayer.Controls
             set
             {
                 SetValue(ProgressPercentsProperty, value);
+            }
+        }
+
+        public double PseudoValue
+        {
+            get
+            {
+                return (double)GetValue(PseudoValueProperty);
+            }
+            set
+            {
+                SetValue(PseudoValueProperty, value);
             }
         }
     }

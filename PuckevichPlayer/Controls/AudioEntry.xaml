@@ -110,15 +110,18 @@
                         Background="{StaticResource ThatLightGrayColorBrush}"
                         ProgressBackground="{StaticResource ThatGrayColorBrush}"
                         Thumb.DragCompleted="PlaybackSlider_OnDragCompleted"
+                        Thumb.DragStarted="PlaybackSlider_OnDragStarted"
                         ProgressPercents="{Binding DataContext.Downloaded, 
                             Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
+                        TargetUpdated="PlaybackSlider_OnTargetUpdated"
                         HorizontalAlignment="Stretch" >
-                        <Slider.Value>
-                            <MultiBinding Mode="OneWay" Converter="{StaticResource PlaybackProgressConverter}">
+                        <controls:SliderWithProgress.PseudoValue>
+                            <MultiBinding Mode="OneWay" Converter="{StaticResource PlaybackProgressConverter}"
+                                          NotifyOnTargetUpdated="True">
                                 <Binding Path="TimePlayed"/>
                                 <Binding Path="Duration"/>
                             </MultiBinding>
-                        </Slider.Value>
+                        </controls:SliderWithProgress.PseudoValue>
                     </controls:SliderWithProgress>
                 </Border>
             </Grid>

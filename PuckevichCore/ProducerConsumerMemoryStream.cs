@@ -18,8 +18,6 @@ namespace PuckevichCore
         private bool __WriteFinished;
         private bool __IsFlushingNow;
 
-        private readonly EventWaitHandle __WriteWaitHandle = new AutoResetEvent(false);
-
         public ProducerConsumerMemoryStream(ICacheStream cacheStream)
         {
             if (cacheStream == null)
@@ -41,7 +39,6 @@ namespace PuckevichCore
                 lock (__Lock)
                 {
                     __WriteFinished = value;
-                    __WriteWaitHandle.Set();
                 }
             }
         }
@@ -57,7 +54,6 @@ namespace PuckevichCore
         {
             lock (__Lock)
             {
-                __WriteWaitHandle.Set();
                 __IsFlushingNow = value;
             }
         }
@@ -115,8 +111,6 @@ namespace PuckevichCore
                 read = __InnerStream.Read(buffer, offset, count);
                 __ReadPosition = __InnerStream.Position;
             }
-            if (!WriteFinished && read == 0)
-                __WriteWaitHandle.WaitOne();
 
             return read;
         }
@@ -132,12 +126,29 @@ namespace PuckevichCore
                 __InnerStream.Write(buffer, offset, count);
                 __WritePosition = __InnerStream.Position;
             }
-            __WriteWaitHandle.Set();
         }
 
         public long WritePosition
         {
-            get { return __WritePosition; }
+            get
+            {
+                lock (__Lock)
+                    return __WritePosition;
+            }
+        }
+
+        public long ReadPosition
+        {
+            get
+            {
+                lock (__Lock)
+                    return __ReadPosition;
+            }
+            set
+            {
+                lock (__Lock)
+                    __ReadPosition = value;
+            }
         }
 
         public void Dispose()
@@ -146,8 +157,6 @@ namespace PuckevichCore
                 __InnerStream.Dispose();
             if (__CacheStream != null)
                 __CacheStream.Dispose();
-
-            __WriteWaitHandle.Dispose();
         }
     }
 }
