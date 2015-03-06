@@ -104,7 +104,6 @@
                    x:Name="PART_Track">
                 <Track.DecreaseRepeatButton>
                     <RepeatButton Style="{StaticResource SliderButtonStyle}"
-                                  Command="Slider.DecreaseLarge"
                                   x:Name="LeftButton"
                                   Background="{TemplateBinding Slider.Foreground}"
                                   Height="{TemplateBinding Slider.Height}" />
@@ -118,7 +117,6 @@
                 </Track.Thumb>
                 <Track.IncreaseRepeatButton>
                     <RepeatButton Style="{StaticResource SliderButtonStyleHalfTransparent}"
-                                  Command="Slider.IncreaseLarge"
                                   x:Name="RightButton"
                                   Background="{TemplateBinding Slider.Background}"
                                   Height="{TemplateBinding Slider.Height}" />
@@ -127,68 +125,6 @@
             <TickBar x:Name="BottomTick"
                      Style="{StaticResource SliderTickBarStyle}"
                      Placement="Bottom" />
-        </Grid>
-        <ControlTemplate.Triggers>
-            <Trigger Property="TickPlacement"
-                     Value="TopLeft">
-                <Setter TargetName="TopTick"
-                        Property="Visibility"
-                        Value="Visible" />
-            </Trigger>
-            <Trigger Property="TickPlacement"
-                     Value="BottomRight">
-                <Setter TargetName="BottomTick"
-                        Property="Visibility"
-                        Value="Visible" />
-            </Trigger>
-            <Trigger Property="TickPlacement"
-                     Value="Both">
-                <Setter TargetName="TopTick"
-                        Property="Visibility"
-                        Value="Visible" />
-                <Setter TargetName="BottomTick"
-                        Property="Visibility"
-                        Value="Visible" />
-            </Trigger>
-        </ControlTemplate.Triggers>
-    </ControlTemplate>
-
-    <ControlTemplate x:Key="VerticalSlider"
-                     TargetType="{x:Type Slider}">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto"
-                                  MinWidth="{TemplateBinding Slider.MinWidth}" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <TickBar x:Name="TopTick"
-                     Style="{StaticResource SliderTickBarStyle}"
-                     Placement="Left" />
-            <Track Grid.Column="1"
-                   x:Name="PART_Track">
-                <Track.DecreaseRepeatButton>
-                    <RepeatButton Style="{StaticResource SliderButtonStyle}"
-                                  Command="Slider.DecreaseLarge"
-                                  Background="{TemplateBinding Slider.Foreground}" 
-                                  Height="{TemplateBinding Slider.Height}"/>
-                </Track.DecreaseRepeatButton>
-                <Track.Thumb>
-                    <Thumb Height="{TemplateBinding Slider.Width}"
-                           Width="{TemplateBinding Slider.Width}"
-                           Style="{StaticResource SliderThumbStyle}"
-                           Background="{TemplateBinding Slider.BorderBrush}" />
-                </Track.Thumb>
-                <Track.IncreaseRepeatButton>
-                    <RepeatButton Style="{StaticResource SliderButtonStyle}"
-                                  Command="Slider.IncreaseLarge"
-                                  Background="{TemplateBinding Slider.Background}"
-                                  Height="{TemplateBinding Slider.Height}" />
-                </Track.IncreaseRepeatButton>
-            </Track>
-            <TickBar x:Name="BottomTick"
-                     Style="{StaticResource SliderTickBarStyle}"
-                     Placement="Right" />
         </Grid>
         <ControlTemplate.Triggers>
             <Trigger Property="TickPlacement"
@@ -255,17 +191,6 @@
                         Value="12" />
                 <Setter Property="Template"
                         Value="{StaticResource HorizontalSlider}" />
-            </Trigger>
-            <Trigger Property="Orientation"
-                     Value="Vertical">
-                <Setter Property="MinWidth"
-                        Value="12" />
-                <Setter Property="Width"
-                        Value="12" />
-                <Setter Property="Height"
-                        Value="100" />
-                <Setter Property="Template"
-                        Value="{StaticResource VerticalSlider}" />
             </Trigger>
         </Style.Triggers>
     </Style>

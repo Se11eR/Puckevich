@@ -9,7 +9,7 @@
              xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:controls="clr-namespace:PuckevichPlayer.Controls"
              mc:Ignorable="d" 
-             Padding="10 0 0 0"
+             Padding="4 0 0 0"
              Height="82"
              d:DataContext="{Binding Source={StaticResource StubAudioModel}}"
              d:DesignWidth="478" >
@@ -28,8 +28,8 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Margin="-10 0 0 0">
-        <Border HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-12 0 0 0" 
+    <Grid Margin="0 0 0 0">
+        <Border HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="8" Margin="-8 0 0 0" 
                 BorderThickness="0"
                 Style="{StaticResource CurrentTrackBorderStyle}">
         </Border>
@@ -40,7 +40,7 @@
         </Border>
         <Border BorderThickness="0 0 0 0" 
                 VerticalAlignment="Top">
-            <Grid Margin="10 0 10 0" >
+            <Grid Margin="6 0 10 0" >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>

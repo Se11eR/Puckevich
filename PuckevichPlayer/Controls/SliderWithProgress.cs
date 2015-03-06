@@ -37,6 +37,7 @@ namespace PuckevichPlayer.Controls
 
         private readonly ProgressBar __DownloadedBar = null;
         private readonly RepeatButton __LeftButton;
+        private readonly RepeatButton __RightButton;
         private readonly Thumb __Thumb;
 
         public SliderWithProgress()
@@ -44,8 +45,36 @@ namespace PuckevichPlayer.Controls
             var style = Application.Current.FindResource("CustomFlatSlider") as Style;
             Style = style;
 
+            ExtractProgressBorder(out __DownloadedBar, out __LeftButton, out __RightButton, out __Thumb);
 
-            ExtractProgressBorder(out __DownloadedBar, out __LeftButton, out __Thumb);
+            __LeftButton.PreviewMouseUp += (sender, args) =>
+            {
+                var btn = sender as RepeatButton;
+                if (btn == null)
+                    return;
+
+                var pos = args.GetPosition(btn).X;
+                var btnRel = pos / btn.ActualWidth;
+                var sliderRel = btn.ActualWidth / ActualWidth;
+
+                Value = btnRel * sliderRel * 100;
+            };
+
+            __LeftButton.PreviewMouseUp += (sender, args) =>
+            {
+                var btn = sender as RepeatButton;
+                if (btn == null)
+                    return;
+
+                var pos = args.GetPosition(btn).X;
+                var btnRel = pos / btn.ActualWidth;
+                var sliderRel = btn.ActualWidth / ActualWidth;
+
+                var leftRel = __LeftButton.ActualWidth / ActualWidth;
+                var thumbRel = __Thumb.ActualWidth / ActualWidth;
+
+                Value = (leftRel + thumbRel + btnRel * sliderRel) * 100;
+            };
         }
 
         private static void ProgressBackgroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -79,10 +108,13 @@ namespace PuckevichPlayer.Controls
             }
         }
 
-        private void ExtractProgressBorder(out ProgressBar progress, out RepeatButton left, out Thumb thumb)
+        private void ExtractProgressBorder(out ProgressBar progress,
+                                           out RepeatButton left,
+                                           out RepeatButton right,
+                                           out Thumb thumb)
         {
             ApplyTemplate();
-            var right = Template.FindName("RightButton", (Slider)this) as RepeatButton;
+            right = Template.FindName("RightButton", (Slider)this) as RepeatButton;
             left = Template.FindName("LeftButton", (Slider)this) as RepeatButton;
             thumb = Template.FindName("Thumb", (Slider)this) as Thumb;
 
