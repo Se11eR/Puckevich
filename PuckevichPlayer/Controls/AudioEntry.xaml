@@ -115,7 +115,7 @@
                         <Grid Margin="0 0 10 0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition />
+                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="{Binding TimePlayed, Converter={StaticResource IntOrDoubleToDurationConverter}}"
@@ -131,7 +131,6 @@
                             Grid.Column="1"
                             VerticalAlignment="Center"
                             x:Name="PlaybackSlider"
-                            Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
                             Height="10"
                             Orientation="Horizontal"
                             Background="{StaticResource ThatLightGrayColorBrush}"
