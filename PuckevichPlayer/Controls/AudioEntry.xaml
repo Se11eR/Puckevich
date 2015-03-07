@@ -10,14 +10,12 @@
              xmlns:controls="clr-namespace:PuckevichPlayer.Controls"
              mc:Ignorable="d" 
              Padding="4 0 0 0"
-             Height="82"
              d:DataContext="{Binding Source={StaticResource StubAudioModel}}"
-             d:DesignWidth="478" >
+             d:DesignWidth="478">
     <UserControl.Resources>
         <ResourceDictionary>
-            <sys:Double x:Key="ThisHeight">100</sys:Double>
             <sampleData:StubAudioModel x:Key="StubAudioModel"/>
-            <conv:IntToDurationConverter x:Key="IntToDurationConverter" />
+            <conv:IntOrDoubleToDurationConverter x:Key="IntOrDoubleToDurationConverter" />
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <conv:PlaybackProgressConverter x:Key="PlaybackProgressConverter" />
             <ResourceDictionary.MergedDictionaries>
@@ -29,18 +27,10 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid Margin="0 0 0 0">
-        <Border HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="8" Margin="-8 0 0 0" 
-                BorderThickness="0"
-                Style="{StaticResource CurrentTrackBorderStyle}">
-        </Border>
         
-        <Border BorderThickness="0 0 0 1" Background="Transparent" 
-                VerticalAlignment="Stretch"
-                BorderBrush="{StaticResource ThatLightGrayColorBrush}">
-        </Border>
         <Border BorderThickness="0 0 0 0" 
                 VerticalAlignment="Top">
-            <Grid Margin="6 0 10 0" >
+            <Grid Margin="6 0 0 0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -50,6 +40,19 @@
                     <ColumnDefinition />
                     <ColumnDefinition Width="100"/>
                 </Grid.ColumnDefinitions>
+                <Border BorderThickness="0" Background="White" 
+                        Grid.RowSpan="2"
+                        Grid.ColumnSpan="2"
+                        Margin="-10 0 0 0"
+                        VerticalAlignment="Stretch">
+                </Border>
+                <Border BorderThickness="0 0 0 1" Background="Transparent" 
+                        Grid.RowSpan="2"
+                        Margin="0 0 10 0"
+                        Grid.ColumnSpan="2"
+                        VerticalAlignment="Stretch"
+                        BorderBrush="{StaticResource ThatLightGrayColorBrush}">
+                </Border>
                 <TextBlock Grid.Row="0"
                        Text="{Binding Title}"
                        Margin="0 4 0 -1"
@@ -57,22 +60,23 @@
                        Style="{StaticResource AudioNameText}" />
                 <TextBlock Grid.Row="1" Grid.Column="0" 
                        Text="{Binding Artist}"
-                       Margin="0 -1 0 4"
+                       Margin="0 -1 0 10"
                        FontSize="20"
                        Style="{StaticResource AudioNameText}" />
-                <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="0 0 -10 0">
-                    <ContentControl 
+                <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="0 0 0 8">
+                    <ContentControl Margin="0 0 -20 0"
                                     Style="{StaticResource AudioEntryPlayPauseRightIndicator}" />
                     <TextBlock 
-                           Text="{Binding Duration, Converter={StaticResource IntToDurationConverter}}"
+                           Text="{Binding Duration, Converter={StaticResource IntOrDoubleToDurationConverter}}"
                            FontSize="25"
+                           Margin="0 0 -20 0"
                            Foreground="{StaticResource ThatDarkGrayColorBrush}" 
                            Style="{StaticResource AudiEntryDurationStyle}" />
                     <TextBlock Text="Cached"
                                FontSize="14"
                                FontWeight="Light"
                                Foreground="{StaticResource ThatDarkGrayColorBrush}"
-                               Margin="0 0 4 0"
+                               Margin="0 0 -20 0"
                                VerticalAlignment="Bottom"
                                HorizontalAlignment="Center">
                         <TextBlock.Style>
@@ -87,11 +91,12 @@
                         </TextBlock.Style>
                     </TextBlock>
                 </Grid>
-                <Border Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"
-                        Margin="0 0 0 2">
+                <Border Background="White"
+                         Margin="-10 0 0 0"
+                        Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2">
                     <Border.Style>
                         <Style TargetType="Border">
-                            <Setter Property="Visibility" Value="Hidden"></Setter>
+                            <Setter Property="Visibility" Value="Collapsed"></Setter>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding AudioState}" Value="Playing">
                                     <Setter Property="Visibility" Value="Visible"></Setter>
@@ -102,27 +107,51 @@
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
-                    <controls:SliderWithProgress 
-                        x:Name="PlaybackSlider"
-                        Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
-                        Height="10"
-                        Orientation="Horizontal"
-                        Background="{StaticResource ThatLightGrayColorBrush}"
-                        ProgressBackground="{StaticResource ThatGrayColorBrush}"
-                        Thumb.DragCompleted="PlaybackSlider_OnDragCompleted"
-                        Thumb.DragStarted="PlaybackSlider_OnDragStarted"
-                        ProgressPercents="{Binding DataContext.Downloaded, 
-                            Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
-                        TargetUpdated="PlaybackSlider_OnTargetUpdated"
-                        HorizontalAlignment="Stretch" >
-                        <controls:SliderWithProgress.PseudoValue>
-                            <MultiBinding Mode="OneWay" Converter="{StaticResource PlaybackProgressConverter}"
+                    <Border 
+                        BorderThickness="0 0 0 1"
+                        BorderBrush="{StaticResource ThatLightGrayColorBrush}"
+                        Margin="10 0 10 0"
+                        Padding="10 6 0 6">
+                        <Grid Margin="0 0 10 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding TimePlayed, Converter={StaticResource IntOrDoubleToDurationConverter}}"
+                                   FontSize="14"
+                                   VerticalAlignment="Center"
+                                   Margin="-10 0 8 0" />
+                            <TextBlock  Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    Margin="8 0 -10 0"
+                                    Text="{Binding Duration, Converter={StaticResource IntOrDoubleToDurationConverter}}"/>
+                            <controls:SliderWithProgress 
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            x:Name="PlaybackSlider"
+                            Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
+                            Height="10"
+                            Orientation="Horizontal"
+                            Background="{StaticResource ThatLightGrayColorBrush}"
+                            ProgressBackground="{StaticResource ThatGrayColorBrush}"
+                            Thumb.DragCompleted="PlaybackSlider_OnDragCompleted"
+                            Thumb.DragStarted="PlaybackSlider_OnDragStarted"
+                            ProgressPercents="{Binding DataContext.Downloaded, 
+                                Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
+                            TargetUpdated="PlaybackSlider_OnTargetUpdated"
+                            HorizontalAlignment="Stretch" >
+                                <controls:SliderWithProgress.PseudoValue>
+                                    <MultiBinding Mode="OneWay" Converter="{StaticResource PlaybackProgressConverter}"
                                           NotifyOnTargetUpdated="True">
-                                <Binding Path="TimePlayed"/>
-                                <Binding Path="Duration"/>
-                            </MultiBinding>
-                        </controls:SliderWithProgress.PseudoValue>
-                    </controls:SliderWithProgress>
+                                        <Binding Path="TimePlayed"/>
+                                        <Binding Path="Duration"/>
+                                    </MultiBinding>
+                                </controls:SliderWithProgress.PseudoValue>
+                            </controls:SliderWithProgress>
+                        </Grid>
+                    </Border>
                 </Border>
             </Grid>
         </Border>

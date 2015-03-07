@@ -9,11 +9,11 @@ using System.Windows.Data;
 namespace PuckevichPlayer.Converters
 {
     [ValueConversion(typeof(int), typeof(string))]
-    public class IntToDurationConverter : IValueConverter
+    public class IntOrDoubleToDurationConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var seconds = (int)value;
+            var seconds = value is int ? (double)(int)value : (double)value;
             var dt = new DateTime().AddSeconds(seconds);
             return dt.ToString("mm:ss");
         }
