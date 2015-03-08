@@ -9,7 +9,7 @@
 	  Title="p_Player">
     <Page.Resources>
         <DataTemplate x:Key="MetroListBoxItem">
-            <cont:AudioEntry MouseDown="AudioEntry_OnMouseDown"/>
+            <cont:AudioEntry AudioEntryClick="AudioEntry_OnMouseDown"/>
         </DataTemplate>
         <Style TargetType="ListBoxItem" x:Key="MetroListBoxItemStyle">
             <Setter Property="SnapsToDevicePixels" Value="True"/>

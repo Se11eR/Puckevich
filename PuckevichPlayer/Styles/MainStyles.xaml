@@ -3,5 +3,6 @@
                     xmlns:converters="clr-namespace:PuckevichPlayer.Converters">
     <SolidColorBrush x:Key="ThatDarkGrayColorBrush" Color="DarkGray" />
     <SolidColorBrush x:Key="ThatGrayColorBrush" Color="#DADADA" />
+    <SolidColorBrush x:Key="ThatGrayColorBrush2" Color="#D2D2D2" />
     <SolidColorBrush x:Key="ThatLightGrayColorBrush" Color="#F0F0F0" />
 </ResourceDictionary>

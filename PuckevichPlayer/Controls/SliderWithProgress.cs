@@ -26,14 +26,13 @@ namespace PuckevichPlayer.Controls
                                         typeof(SolidColorBrush),
                                         typeof(SliderWithProgress),
                                         new FrameworkPropertyMetadata(default(SolidColorBrush),
-                                                               ProgressBackgroundChanged));
+                                                                      ProgressBackgroundChanged));
 
-        public static readonly DependencyProperty PseudoValueProperty = DependencyProperty.Register("PseudoValue",
-                                                        typeof(double),
-                                                        typeof(SliderWithProgress),
-                                                        new PropertyMetadata(default(double)));
-
-        
+        public static readonly DependencyProperty PseudoValueProperty =
+            DependencyProperty.Register("PseudoValue",
+                                        typeof(double),
+                                        typeof(SliderWithProgress),
+                                        new FrameworkPropertyMetadata(default(double)));
 
         private readonly ProgressBar __DownloadedBar = null;
         private readonly RepeatButton __LeftButton;
@@ -57,10 +56,10 @@ namespace PuckevichPlayer.Controls
                 var btnRel = pos / btn.ActualWidth;
                 var sliderRel = btn.ActualWidth / ActualWidth;
 
-                Value = btnRel * sliderRel * 100;
+                OnChangeValueClick(btnRel * sliderRel * 100);
             };
 
-            __LeftButton.PreviewMouseUp += (sender, args) =>
+            __RightButton.PreviewMouseUp += (sender, args) =>
             {
                 var btn = sender as RepeatButton;
                 if (btn == null)
@@ -73,7 +72,7 @@ namespace PuckevichPlayer.Controls
                 var leftRel = __LeftButton.ActualWidth / ActualWidth;
                 var thumbRel = __Thumb.ActualWidth / ActualWidth;
 
-                Value = (leftRel + thumbRel + btnRel * sliderRel) * 100;
+                OnChangeValueClick((leftRel + thumbRel + btnRel * sliderRel) * 100);
             };
         }
 
@@ -105,6 +104,15 @@ namespace PuckevichPlayer.Controls
             {
                 slider.__DownloadedBar.Value = 100 * w
                                                / (double)slider.__DownloadedBar.GetValue(ActualWidthProperty);
+            }
+        }
+
+        private void OnChangeValueClick(double newValue)
+        {
+            var handler = ChangeValueClick;
+            if (handler != null)
+            {
+                handler(this, newValue);
             }
         }
 
@@ -149,6 +157,10 @@ namespace PuckevichPlayer.Controls
                 SetValue(ProgressPercentsProperty, value);
             }
         }
+
+        public delegate void ChangeValueClickEventHandler(object sender, double newValue);
+
+        public event ChangeValueClickEventHandler ChangeValueClick;
 
         public double PseudoValue
         {

@@ -32,12 +32,20 @@ namespace PuckevichPlayer.Controls
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public event MouseButtonEventHandler AudioEntryClick;
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             var handler = PropertyChanged;
             if (handler != null)
                 handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void OnAudioEntryClick(MouseButtonEventArgs e)
+        {
+            var handler = AudioEntryClick;
+            if (handler != null)
+                handler(this, e);
         }
 
         private void PlaybackSlider_OnDragCompleted(object sender, DragCompletedEventArgs e)
@@ -57,6 +65,17 @@ namespace PuckevichPlayer.Controls
             if (e.Property.Name == "PseudoValue")
                 if (!__IsDraggingNow)
                     PlaybackSlider.Value = PlaybackSlider.PseudoValue;
+        }
+
+        private void PlaybackSlider_OnChangeValueClick(object sender, double newvalue)
+        {
+            if (!__IsDraggingNow)
+                ((AudioModel)DataContext).TimePlayed = newvalue / 100 * ((AudioModel)DataContext).Duration;
+        }
+
+        private void PlayPauseClick(object sender, MouseButtonEventArgs e)
+        {
+            OnAudioEntryClick(e);
         }
     }
 }

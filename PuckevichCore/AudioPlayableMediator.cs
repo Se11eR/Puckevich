@@ -128,6 +128,7 @@ namespace PuckevichCore
                     return;
 
                 __InternalPlayable.Seek(value);
+                OnSecondsPlayedChanged();
             }
         }
 

@@ -92,7 +92,7 @@
                     </TextBlock>
                 </Grid>
                 <Border Background="White"
-                         Margin="-10 0 0 0"
+                        Margin="-10 0 0 0"
                         Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2">
                     <Border.Style>
                         <Style TargetType="Border">
@@ -128,19 +128,20 @@
                                     Margin="8 0 -10 0"
                                     Text="{Binding Duration, Converter={StaticResource IntOrDoubleToDurationConverter}}"/>
                             <controls:SliderWithProgress 
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            x:Name="PlaybackSlider"
-                            Height="10"
-                            Orientation="Horizontal"
-                            Background="{StaticResource ThatLightGrayColorBrush}"
-                            ProgressBackground="{StaticResource ThatGrayColorBrush}"
-                            Thumb.DragCompleted="PlaybackSlider_OnDragCompleted"
-                            Thumb.DragStarted="PlaybackSlider_OnDragStarted"
-                            ProgressPercents="{Binding DataContext.Downloaded, 
-                                Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
-                            TargetUpdated="PlaybackSlider_OnTargetUpdated"
-                            HorizontalAlignment="Stretch" >
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                x:Name="PlaybackSlider"
+                                Height="10"
+                                Orientation="Horizontal"
+                                Background="{StaticResource ThatLightGrayColorBrush}"
+                                ProgressBackground="{StaticResource ThatGrayColorBrush}"
+                                Thumb.DragCompleted="PlaybackSlider_OnDragCompleted"
+                                Thumb.DragStarted="PlaybackSlider_OnDragStarted"
+                                ProgressPercents="{Binding DataContext.Downloaded, 
+                                    Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
+                                TargetUpdated="PlaybackSlider_OnTargetUpdated"
+                                ChangeValueClick="PlaybackSlider_OnChangeValueClick"
+                                HorizontalAlignment="Stretch" >
                                 <controls:SliderWithProgress.PseudoValue>
                                     <MultiBinding Mode="OneWay" Converter="{StaticResource PlaybackProgressConverter}"
                                           NotifyOnTargetUpdated="True">
@@ -152,6 +153,12 @@
                         </Grid>
                     </Border>
                 </Border>
+                <Border BorderThickness="0"
+                        Grid.RowSpan="2"
+                        PreviewMouseUp="PlayPauseClick"
+                        Background="Transparent"
+                        Grid.ColumnSpan="2"
+                        Margin="-10 0 -10 0"/>
             </Grid>
         </Border>
     </Grid>

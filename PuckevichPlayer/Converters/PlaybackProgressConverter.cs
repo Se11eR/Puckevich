@@ -32,9 +32,7 @@ namespace PuckevichPlayer.Converters
         {
             try
             {
-                var val = (double)value;
-
-                return new[] {value, 0};
+                return new[] {value, Binding.DoNothing};
             }
             catch (Exception)
             {
