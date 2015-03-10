@@ -4,5 +4,5 @@
         WindowStartupLocation="CenterScreen"
         Loaded="MainWindow_OnLoaded"
         Closed="OnClosed"
-        Title="MainWindow" Height="850" Width="478" ResizeMode="NoResize">
+        Title="Puckevich Player" Height="850" Width="478" ResizeMode="NoResize">
 </Window>

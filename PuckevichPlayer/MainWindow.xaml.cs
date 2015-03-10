@@ -37,7 +37,7 @@ namespace PuckevichPlayer
 
         private void OnClosed(object sender, EventArgs args)
         {
-            AudioManager.Instance.Dispose();
+            AccountManager.Instance.Dispose();
         }
 
         private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -46,9 +46,9 @@ namespace PuckevichPlayer
             string email = "vkontakt232@gmail.com";
             string pass = "ohmaniwillneverforgiveyourassforthisshit";
 
-            await Task.Run(() => AudioManager.Instance.Init(email, pass, new IsolatedStorageFileStorage(), web));
+            await Task.Run(() => AccountManager.Instance.Init(email, pass, new IsolatedStorageFileStorage(), web));
 
-            IItemsProvider<IAudio> audioProvider = AudioManager.Instance.AudioInfoProvider;
+            IItemsProvider<IAudio> audioProvider = AccountManager.Instance.AudioInfoProvider;
             var collection =
                 new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(audioProvider),
                                                             PAGE_SIZE,

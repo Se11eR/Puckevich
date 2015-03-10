@@ -315,10 +315,11 @@ namespace PuckevichCore
 
         public void Seek(double second)
         {
+            if (!Monitor.TryEnter(__SeekLock)) 
+                return;
+
             try
             {
-                Monitor.TryEnter(__SeekLock);
-
                 var seekByte = Bass.BASS_ChannelSeconds2Bytes(__BassStream, second);
 
                 if (!Bass.BASS_ChannelSetPosition(__BassStream, seekByte, BASSMode.BASS_POS_BYTES))
