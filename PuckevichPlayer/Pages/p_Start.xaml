@@ -4,12 +4,10 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       mc:Ignorable="d" 
-      d:DesignHeight="300" d:DesignWidth="300"
-	Title="Starting">
-
+      d:DesignHeight="850" d:DesignWidth="478"
+	  Title="Starting">
     <Grid>
         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
-                   FontFamily="Segoe UI"
                    FontSize="40">Starting...</TextBlock>
     </Grid>
 </Page>
