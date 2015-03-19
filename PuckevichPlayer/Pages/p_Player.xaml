@@ -83,7 +83,41 @@
         </Style>
     </Page.Resources>
     <Grid>
-        <ListBox HorizontalAlignment="Stretch"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Border Background="{DynamicResource AccentColorBrush}" Height="60">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border BorderThickness="0 0 0 0" BorderBrush="{DynamicResource BlackBrush}">
+                    <Viewbox >
+                        <ContentControl Content="{StaticResource appbar_user_white}"/>
+                    </Viewbox>
+                </Border>
+                <TextBlock Text="Puckevich" 
+                           FontSize="26"
+                           Foreground="White"
+                           FontWeight="Normal"
+                           Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Border BorderThickness="0 0 0 0" 
+                        Grid.Column="2" 
+                        BorderBrush="{DynamicResource BlackBrush}">
+                    <TextBlock Text="Cache" 
+                               FontSize="20"
+                               FontWeight="Light"
+                               Foreground="White"
+                               Margin="16 0 16 0"
+                               VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </Border>
+            </Grid>
+        </Border>
+        <ListBox Grid.Row="1"
+                 HorizontalAlignment="Stretch"
                  HorizontalContentAlignment="Stretch"
                  VerticalAlignment="Stretch"
                  BorderBrush="{x:Null}"
