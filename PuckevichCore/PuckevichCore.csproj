@@ -101,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AudioInfo.cs" />
+    <Compile Include="AudioInfoCacheOnlyProvider.cs" />
     <Compile Include="CacheStorage\CacheStorage.cs" />
     <Compile Include="CacheStorage\CacheStream.cs" />
     <Compile Include="CacheStorage\JsonModel.cs" />

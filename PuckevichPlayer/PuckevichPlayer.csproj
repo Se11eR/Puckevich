@@ -71,6 +71,7 @@
     <Compile Include="Pages\p_Start.xaml.cs">
       <DependentUpon>p_Start.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\SmapleData\StubPlayerContext.cs" />
     <Compile Include="Storage\IsolatedStorageFileStorage.cs" />
     <Compile Include="Virtualizing\AsyncVirtualizingCollection.cs" />
     <Compile Include="AudioModel.cs" />

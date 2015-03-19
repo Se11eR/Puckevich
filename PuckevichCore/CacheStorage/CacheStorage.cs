@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using PuckevichCore.Interfaces;
@@ -13,7 +14,8 @@ namespace PuckevichCore.CacheStorage
         private const string MAP_FILE = "audios.json";
         private const string FILE_NAME_PATTERN = "{0} - {1}#{2}#.mp3";
 
-        private Dictionary<long, JsonAudioModel> __AudioDict = new Dictionary<long, JsonAudioModel>();
+        private readonly Dictionary<long, JsonAudioModel> __AudioDict = new Dictionary<long, JsonAudioModel>();
+        private List<long> __AudioIdList;
         private JsonTextWriter __Writer;
         private JsonSerializer __Serializer;
 
@@ -30,6 +32,10 @@ namespace PuckevichCore.CacheStorage
                 __Serializer = new JsonSerializer { Formatting = Formatting.Indented };
                 __AudioDict = __Serializer.Deserialize<Dictionary<long, JsonAudioModel>>(file) ?? new Dictionary<long, JsonAudioModel>();
             }
+
+            var sorted = __AudioDict.ToList();
+            sorted.Sort((x, y) => x.Value.Index <= y.Value.Index ? -1 : 1);
+            __AudioIdList = sorted.Select(x => x.Key).ToList();
         }
 
         private string MakeFileName(JsonAudioModel model)
@@ -61,6 +67,7 @@ namespace PuckevichCore.CacheStorage
                 Duration = audio.Duration,
                 Title = audio.Title,
                 UserId = audio.UserId,
+                Index = audio.Index
             };
 
             __AudioDict.Add(audioModel.AudioId, audioModel);
@@ -116,6 +123,21 @@ namespace PuckevichCore.CacheStorage
             return s;
         }
 
+        public IAudio GetAt(int index)
+        {
+            JsonAudioModel audioModel;
+
+            if (__AudioDict.TryGetValue(__AudioIdList[index], out audioModel))
+            {
+                if (__Storage.FileExists(MakeFileName(audioModel)))
+                {
+                    return audioModel;
+                }
+            }
+
+            return null;
+        }
+
         public bool CheckCached(IAudio audio)
         {
             JsonAudioModel audioModel;
@@ -135,6 +157,11 @@ namespace PuckevichCore.CacheStorage
         public void RemovecachedAudio(long auidiId)
         {
             __AudioDict.Remove(auidiId);
+        }
+
+        public int Count
+        {
+            get { return __AudioDict.Keys.Count; }
         }
 
         public void Dispose()

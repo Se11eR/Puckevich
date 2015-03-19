@@ -21,12 +21,12 @@ namespace PuckevichCore.Interfaces
 
         ICacheStream GetCacheStream(IAudio audio);
 
+        IAudio GetAt(int index);
+
         bool CheckCached(IAudio audio);
 
-        /// <summary>
-        /// Удаляет кешированную аудиозапись
-        /// </summary>
-        /// <param name="auidiId"></param>
         void RemovecachedAudio(long auidiId);
+
+        int Count { get; }
     }
 }

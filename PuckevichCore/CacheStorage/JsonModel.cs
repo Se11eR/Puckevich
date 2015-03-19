@@ -1,6 +1,8 @@
+using PuckevichCore.Interfaces;
+
 namespace PuckevichCore.CacheStorage
 {
-    internal class JsonAudioModel
+    internal class JsonAudioModel : IAudio
     {
         public long AudioId { get; set; }
 
@@ -13,5 +15,12 @@ namespace PuckevichCore.CacheStorage
         public int Duration { get; set; }
 
         public long AudioSize { get; set; }
+
+        public int Index { get; set; }
+
+        public IManagedPlayable Playable
+        {
+            get { return null; }
+        }
     }
 }

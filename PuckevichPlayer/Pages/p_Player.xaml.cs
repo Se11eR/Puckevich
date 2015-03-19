@@ -25,15 +25,19 @@ namespace PuckevichPlayer
     /// </summary>
     public partial class p_Player : Page, INotifyPropertyChanged
     {
+        private readonly string __UserFirstName;
         private IList<AudioModel> __List;
         private volatile AudioModel __CurrentActive;
         private readonly SemaphoreSlim __ProgressSemaphore = new SemaphoreSlim(1);
 
-        public p_Player(IList<AudioModel> list)
+        public p_Player(IList<AudioModel> list, string userFirstName)
         {
+            __UserFirstName = userFirstName;
             InitializeComponent();
             DataContext = this;
             AudioList = list;
+
+            PlayerTitle = String.Format("{0}'s music", userFirstName);
         }
 
         private async void AudioEntry_OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -97,6 +101,8 @@ namespace PuckevichPlayer
             if (handler != null)
                 handler(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public string PlayerTitle { get; private set; }
 
         public IList<AudioModel> AudioList
         {

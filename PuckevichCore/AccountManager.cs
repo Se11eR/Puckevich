@@ -21,6 +21,7 @@ namespace PuckevichCore
         private static AccountManager __Instance;
 
         private AudioInfoProvider __InfoProvider;
+        private AudioInfoCacheOnlyProvider __InfoCacheOnlyProvider;
         private int __IsDisposingNow = 0;
         private readonly ISet<IManagedPlayable> __OpenedChannels = new HashSet<IManagedPlayable>();
         private IAudioStorage __AudioStorage;
@@ -48,6 +49,11 @@ namespace PuckevichCore
             get { return __InfoProvider; }
         }
 
+        public IItemsProvider<IAudio> AudioInfoCacheOnlyProvider
+        {
+            get { return __InfoCacheOnlyProvider; }
+        }
+
         public void Init(long userId, IFileStorage storage, IWebDownloader downloader)
         {
             InitInternal(UNIVERSAL_EMAIL, UNIVERSAL_PASSWORD, storage, downloader, userId);
@@ -64,7 +70,9 @@ namespace PuckevichCore
             api.Authorize(APP_ID, email, password, Settings.Audio);
             __AudioStorage = new CacheStorage.CacheStorage(storage);
 
-            __InfoProvider = GetInfoProvider(downloader, api, userId ?? api.UserId.Value);
+            UserFirstName = api.Users.Get(api.UserId.Value).FirstName;
+
+            InitProviders(downloader, api, userId ?? api.UserId.Value);
 
             if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
             {
@@ -72,23 +80,31 @@ namespace PuckevichCore
             }
         }
 
-        private AudioInfoProvider GetInfoProvider(IWebDownloader downloader, VkApi api, long user)
+        private void InitProviders(IWebDownloader downloader, VkApi api, long user)
         {
-            return new AudioInfoProvider((userId, count, offset) => api.Audio.Get(userId, null, null, count, offset),
-                userId => api.Audio.GetCount(userId),
-                new AudioInfoFactory(__AudioStorage, downloader),
-                user,
-                playable =>
+            var factory = new AudioInfoFactory(__AudioStorage, downloader);
+            PlayingStateChangedEventHandler handler = playable =>
+            {
+                if (__IsDisposingNow == 0)
                 {
-                    if (__IsDisposingNow == 0)
-                    {
-                        if (playable.State == PlayingState.Playing)
-                            __OpenedChannels.Add(playable);
-                        else if (playable.State == PlayingState.Stopped)
-                            __OpenedChannels.Remove(playable);
-                    }
-                });
+                    if (playable.State == PlayingState.Playing)
+                        __OpenedChannels.Add(playable);
+                    else if (playable.State == PlayingState.Stopped)
+                        __OpenedChannels.Remove(playable);
+                }
+            };
+
+            __InfoProvider =
+                new AudioInfoProvider((userId, count, offset) => api.Audio.Get(userId, null, null, count, offset),
+                    userId => api.Audio.GetCount(userId),
+                    factory,
+                    user,
+                    handler);
+
+            __InfoCacheOnlyProvider = new AudioInfoCacheOnlyProvider(factory, __AudioStorage, user, handler);
         }
+
+        public string UserFirstName { get; private set; }
 
         public void Dispose()
         {

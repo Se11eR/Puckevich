@@ -12,6 +12,8 @@ namespace PuckevichCore.Interfaces
 
         int Duration { get; }
 
+        int Index { get; }
+
         IManagedPlayable Playable { get; }
     }
 }

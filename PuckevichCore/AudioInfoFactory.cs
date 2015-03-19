@@ -1,6 +1,8 @@
 ﻿using System;
+using PuckevichCore.CacheStorage;
 using PuckevichCore.Interfaces;
 using VkNet.Model;
+using VkNet.Model.Attachments;
 
 namespace PuckevichCore
 {
@@ -15,15 +17,44 @@ namespace PuckevichCore
             __Downloader = downloader;
         }
 
-        public IAudio Create(long audioId,
-                             long userId,
-                             string title,
-                             string artist,
-                             int duration,
-                             Uri url,
-                             PlayingStateChangedEventHandler handler = null)
+        public AudioInfo Create(long userId,
+            int index,
+            Audio audio,
+            Uri url,
+            PlayingStateChangedEventHandler handler = null)
         {
-            var info = new AudioInfo(__Storage, __Downloader, audioId, userId, title, artist, duration, url);
+            var info = new AudioInfo(__Storage,
+                __Downloader,
+                audio.Id,
+                userId,
+                audio.Title,
+                audio.Artist,
+                audio.Duration,
+                index,
+                url);
+
+            if (handler != null)
+            {
+                info.Playable.PlayingStateChanged += handler;
+            }
+            return info;
+        }
+
+        public AudioInfo Create(long userId,
+            int index,
+            IAudio audio,
+            Uri url,
+            PlayingStateChangedEventHandler handler = null)
+        {
+            var info = new AudioInfo(__Storage,
+                __Downloader,
+                audio.AudioId,
+                userId,
+                audio.Title,
+                audio.Artist,
+                audio.Duration,
+                index,
+                url);
 
             if (handler != null)
             {

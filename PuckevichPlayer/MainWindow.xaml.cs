@@ -53,7 +53,7 @@ namespace PuckevichPlayer
                 new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(audioProvider),
                                                             PAGE_SIZE,
                                                             PAGE_TIMEOUT);
-            Content = new p_Player(collection);
+            Content = new p_Player(collection, AccountManager.Instance.UserFirstName);
         }
     }
 }

@@ -15,15 +15,17 @@ namespace PuckevichCore
         private string __Artist;
         private int __Duration;
         private IManagedPlayable __Playable;
+        private int __Index;
 
         internal AudioInfo(IAudioStorage storage, IWebDownloader downloader,
-            long audioId, long userId, string title, string artist, int duration, Uri url)
+            long audioId, long userId, string title, string artist, int duration, int index, Uri url)
         {
             __AudioId = audioId;
             __UserId = userId;
             __Title = title;
             __Artist = artist;
             __Duration = duration;
+            __Index = index;
 
             __Playable = new AudioPlayableMediator(storage, downloader, this, url);
         }
@@ -66,6 +68,11 @@ namespace PuckevichCore
             {
                 return __Duration;
             }
+        }
+
+        public int Index
+        {
+            get { return __Index; }
         }
 
         public IManagedPlayable Playable

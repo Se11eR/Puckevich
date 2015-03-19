@@ -4,10 +4,13 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:cont="clr-namespace:PuckevichPlayer.Controls"
+      xmlns:smapleData="clr-namespace:PuckevichPlayer.Pages.SmapleData"
       mc:Ignorable="d" 
       d:DesignHeight="850" d:DesignWidth="478"
+      d:DataContext="{Binding Source={StaticResource StubPlayerContext}}"
 	  Title="p_Player">
     <Page.Resources>
+        <smapleData:StubPlayerContext x:Key="StubPlayerContext"/>
         <DataTemplate x:Key="MetroListBoxItem">
             <cont:AudioEntry AudioEntryClick="AudioEntry_OnMouseDown"/>
         </DataTemplate>
@@ -99,7 +102,7 @@
                         <ContentControl Content="{StaticResource appbar_user_white}"/>
                     </Viewbox>
                 </Border>
-                <TextBlock Text="Puckevich" 
+                <TextBlock Text="{Binding PlayerTitle}" 
                            FontSize="26"
                            Foreground="White"
                            FontWeight="Normal"
