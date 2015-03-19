@@ -15,7 +15,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using PuckevichCore;
+using PuckevichCore.DataVirtualization;
+using PuckevichCore.Interfaces;
 using PuckevichPlayer.Controls;
+using PuckevichPlayer.Virtualizing;
 using Page = System.Windows.Controls.Page;
 
 namespace PuckevichPlayer
@@ -25,19 +28,33 @@ namespace PuckevichPlayer
     /// </summary>
     public partial class p_Player : Page, INotifyPropertyChanged
     {
-        private readonly string __UserFirstName;
+        private const int PAGE_SIZE = 100;
+        private const int PAGE_TIMEOUT = 1000 * 60; //1 minute
+
+        private readonly IItemsProvider<IAudio> __VkProvider;
+        private readonly IItemsProvider<IAudio> __CachedProvider;
         private IList<AudioModel> __List;
         private volatile AudioModel __CurrentActive;
         private readonly SemaphoreSlim __ProgressSemaphore = new SemaphoreSlim(1);
 
-        public p_Player(IList<AudioModel> list, string userFirstName)
+        public p_Player(IItemsProvider<IAudio> vkProvider, IItemsProvider<IAudio> cachedProvider, string userFirstName)
         {
-            __UserFirstName = userFirstName;
+            __VkProvider = vkProvider;
+            __CachedProvider = cachedProvider;
             InitializeComponent();
             DataContext = this;
-            AudioList = list;
+            AudioList = GetModelsList();
 
             PlayerTitle = String.Format("{0}'s music", userFirstName);
+        }
+
+        private IList<AudioModel> GetModelsList(bool cached = false)
+        {
+            return
+                new AsyncVirtualizingCollection<AudioModel>(
+                    new AudioModelProviderWrapper(cached ? __CachedProvider : __VkProvider),
+                    PAGE_SIZE,
+                    PAGE_TIMEOUT);
         }
 
         private async void AudioEntry_OnMouseDown(object sender, MouseButtonEventArgs e)

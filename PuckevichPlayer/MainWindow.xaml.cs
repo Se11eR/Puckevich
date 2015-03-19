@@ -25,9 +25,6 @@ namespace PuckevichPlayer
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const int PAGE_SIZE = 100;
-        private const int PAGE_TIMEOUT = 1000 * 60; //1 minute
-
         public MainWindow()
         {
             InitializeComponent();
@@ -48,12 +45,10 @@ namespace PuckevichPlayer
 
             await Task.Run(() => AccountManager.Instance.Init(email, pass, new IsolatedStorageFileStorage(), web));
 
-            IItemsProvider<IAudio> audioProvider = AccountManager.Instance.AudioInfoProvider;
-            var collection =
-                new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(audioProvider),
-                                                            PAGE_SIZE,
-                                                            PAGE_TIMEOUT);
-            Content = new p_Player(collection, AccountManager.Instance.UserFirstName);
+            
+            Content = new p_Player(AccountManager.Instance.AudioInfoProvider,
+                AccountManager.Instance.AudioInfoCacheOnlyProvider,
+                AccountManager.Instance.UserFirstName);
         }
     }
 }
