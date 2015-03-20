@@ -31,16 +31,24 @@ namespace PuckevichPlayer
         private const int PAGE_SIZE = 100;
         private const int PAGE_TIMEOUT = 1000 * 60; //1 minute
 
-        private readonly IItemsProvider<IAudio> __VkProvider;
-        private readonly IItemsProvider<IAudio> __CachedProvider;
+        private readonly VirtualizingCollection<AudioModel> __VkProvider;
+        private readonly VirtualizingCollection<AudioModel> __CachedProvider;
         private IList<AudioModel> __List;
         private volatile AudioModel __CurrentActive;
         private readonly SemaphoreSlim __ProgressSemaphore = new SemaphoreSlim(1);
+        private bool __IsCacheMode;
 
         public p_Player(IItemsProvider<IAudio> vkProvider, IItemsProvider<IAudio> cachedProvider, string userFirstName)
         {
-            __VkProvider = vkProvider;
-            __CachedProvider = cachedProvider;
+            __VkProvider = new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(vkProvider),
+                PAGE_SIZE,
+                PAGE_TIMEOUT);
+
+            __CachedProvider = new AsyncVirtualizingCollection<AudioModel>(
+                new AudioModelProviderWrapper(cachedProvider),
+                PAGE_SIZE,
+                PAGE_TIMEOUT);
+
             InitializeComponent();
             DataContext = this;
             AudioList = GetModelsList();
@@ -48,13 +56,9 @@ namespace PuckevichPlayer
             PlayerTitle = String.Format("{0}'s music", userFirstName);
         }
 
-        private IList<AudioModel> GetModelsList(bool cached = false)
+        private VirtualizingCollection<AudioModel> GetModelsList(bool cached = false)
         {
-            return
-                new AsyncVirtualizingCollection<AudioModel>(
-                    new AudioModelProviderWrapper(cached ? __CachedProvider : __VkProvider),
-                    PAGE_SIZE,
-                    PAGE_TIMEOUT);
+            return cached ? __CachedProvider : __VkProvider;
         }
 
         private async void AudioEntry_OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -121,6 +125,19 @@ namespace PuckevichPlayer
 
         public string PlayerTitle { get; private set; }
 
+        
+
+        public bool IsCacheMode
+        {
+            get { return __IsCacheMode; }
+            set
+            {
+                __IsCacheMode = value;
+                OnPropertyChanged();
+            }
+        }
+
+
         public IList<AudioModel> AudioList
         {
             get
@@ -135,6 +152,12 @@ namespace PuckevichPlayer
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        private void Cached_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            IsCacheMode = !IsCacheMode;
+            AudioList = GetModelsList(IsCacheMode);
+        }
     }
 
 }

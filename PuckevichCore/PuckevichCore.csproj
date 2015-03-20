@@ -104,7 +104,7 @@
     <Compile Include="AudioInfoCacheOnlyProvider.cs" />
     <Compile Include="CacheStorage\CacheStorage.cs" />
     <Compile Include="CacheStorage\CacheStream.cs" />
-    <Compile Include="CacheStorage\JsonModel.cs" />
+    <Compile Include="CacheStorage\JsonAudioModel.cs" />
     <Compile Include="DataVirtualization\IItemsProvider.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Exceptions\AudioAccessException.cs" />
