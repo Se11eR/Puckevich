@@ -77,32 +77,6 @@ namespace PuckevichCore.CacheStorage
             return s;
         }
 
-        private async Task<ICacheStream> CreateCacheStreamAsync(IAudio audio)
-        {
-            return await Task.Run(() => CreateCacheStream(audio));
-        }
-
-        public async Task<ICacheStream> GetCacheStreamAsync(IAudio audio)
-        {
-            JsonAudioModel audioModel;
-            ICacheStream s;
-            if (__AudioDict.TryGetValue(audio.AudioId, out audioModel))
-            {
-                if (__Storage.FileExists(MakeFileName(audioModel)))
-                {
-                    s = await LocateCacheStreamAsync(audioModel);
-                }
-                else
-                {
-                    s = await CreateCacheStreamAsync(audio);
-                }
-            }
-            else
-                s = await CreateCacheStreamAsync(audio);
-
-            return s;
-        }
-
         public ICacheStream GetCacheStream(IAudio audio)
         {
             JsonAudioModel audioModel;
@@ -148,7 +122,7 @@ namespace PuckevichCore.CacheStorage
                 if (__Storage.FileExists(fname))
                 {
                     var length = __Storage.GetFileSize(fname);
-                    return length >= audioModel.AudioSize;
+                    return length > 0 && length >= audioModel.AudioSize;
                 }
                 return false;
             }

@@ -11,12 +11,11 @@ namespace PuckevichCore
     internal class ProducerConsumerMemoryStream : IDisposable
     {
         private readonly Stream __InnerStream;
-        private readonly ICacheStream __CacheStream;
+        private ICacheStream __CacheStream;
         private long __ReadPosition;
         private long __WritePosition;
         private readonly object __Lock;
         private bool __WriteFinished;
-        private bool __IsFlushingNow;
 
         public ProducerConsumerMemoryStream(ICacheStream cacheStream)
         {
@@ -50,14 +49,6 @@ namespace PuckevichCore
             __WriteFinished = false;
         }
 
-        private void SetFlushing(bool value)
-        {
-            lock (__Lock)
-            {
-                __IsFlushingNow = value;
-            }
-        }
-
         public void LoadToMemory()
         {
             var initialPosition = __CacheStream.Position;
@@ -78,35 +69,33 @@ namespace PuckevichCore
 
         public void FlushToCache()
         {
-            SetFlushing(true);
-
-            if (__WritePosition > __CacheStream.Position)
+            lock (__Lock)
             {
-                var toWrite = __WritePosition - __CacheStream.Position;
-                var buf = new byte[16384];
-                __InnerStream.Position = __CacheStream.Position;
-
-                int allRead = 0;
-                while (allRead < toWrite)
+                if (__WritePosition > __CacheStream.Position)
                 {
-                    int read;
-                    allRead += (read = __InnerStream.Read(buf, 0, buf.Length));
-                    __CacheStream.Write(buf, 0, read);
+                    var toWrite = __WritePosition - __CacheStream.Position;
+                    var buf = new byte[16384];
+                    __InnerStream.Position = __CacheStream.Position;
+
+                    int allRead = 0;
+                    while (allRead < toWrite)
+                    {
+                        int read;
+                        allRead += (read = __InnerStream.Read(buf, 0, buf.Length));
+                        __CacheStream.Write(buf, 0, read);
+                    }
+
+                    __CacheStream.Flush();
+                    __CacheStream.Dispose();
+                    __CacheStream = null;
                 }
-
-                __CacheStream.Flush();
             }
-
-            SetFlushing(false);
         }
         public int Read(byte[] buffer, int offset, int count)
         {
             int read;
             lock (__Lock)
             {
-                if (__IsFlushingNow)
-                    return 0;
-
                 __InnerStream.Position = __ReadPosition;
                 read = __InnerStream.Read(buffer, offset, count);
                 __ReadPosition = __InnerStream.Position;
@@ -119,9 +108,6 @@ namespace PuckevichCore
         {
             lock (__Lock)
             {
-                if (__IsFlushingNow)
-                    return;
-
                 __InnerStream.Position = __WritePosition;
                 __InnerStream.Write(buffer, offset, count);
                 __WritePosition = __InnerStream.Position;

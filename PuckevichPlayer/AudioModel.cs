@@ -30,7 +30,7 @@ namespace PuckevichPlayer
                 sender => Downloaded = sender.PercentsDownloaded;
             __InternalAudio.Playable.SecondsPlayedChanged += sender => OnPropertyChanged("TimePlayed");
 
-            __Downloaded = __InternalAudio.Playable.PercentsDownloaded;
+            Downloaded = __InternalAudio.Playable.PercentsDownloaded;
         }
 
         public string Title

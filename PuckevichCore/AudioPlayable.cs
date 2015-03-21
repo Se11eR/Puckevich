@@ -56,7 +56,7 @@ namespace PuckevichCore
             __EndStreamProc = (handle, channel, data, user) =>
             {
                 __RequestTasksStop = true;
-                FlushAndCleanAfterStop();
+                CleanActions();
                 OnAudioNaturallyEnded();
             };
 
@@ -78,24 +78,6 @@ namespace PuckevichCore
             var handler = AudioNaturallyEnded;
             if (handler != null)
                 handler();
-        }
-
-        private void FlushAndCleanAfterStop()
-        {
-            switch (__CacheStream.Status)
-            {
-                case AudioStorageStatus.Stored:
-
-                    break;
-                case AudioStorageStatus.PartiallyStored:
-                case AudioStorageStatus.NotStored:
-                    __ProducerConsumerStream.FlushToCache();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            CleanActions();
         }
 
         private void CleanActions()
@@ -178,11 +160,14 @@ namespace PuckevichCore
                     if (__RequestTasksStop)
                         return;
                 }
+
+
             }
             finally
             {
                 if (webStream != null)
                     webStream.Dispose();
+                __ProducerConsumerStream.FlushToCache();
                 __ProducerConsumerStream.WriteFinished = true;
                 __ThresholdDownloaded = true;
             }
@@ -238,16 +223,6 @@ namespace PuckevichCore
                 __BytesReadToBass += length;
                 DownloadedFracion = (double)__BytesReadToBass / __CacheStream.AudioSize;
             }
-        }
-
-        private bool BassSeekProc(long offset, IntPtr user)
-        {
-            if (offset < __ProducerConsumerStream.WritePosition)
-            {
-                __ProducerConsumerStream.ReadPosition = offset;
-                return true;
-            }
-            return false;
         }
 
         public void Init()
@@ -350,7 +325,7 @@ namespace PuckevichCore
         public void Stop()
         {
             StreamStopTasksWait();
-            FlushAndCleanAfterStop();
+            CleanActions();
         }
 
         public double DownloadedFracion
