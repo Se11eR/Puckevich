@@ -84,6 +84,7 @@
     <Compile Include="Pages\p_Player.xaml.cs">
       <DependentUpon>p_Player.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Virtualizing\ItemsProviderCollectionWrapper.cs" />
     <Compile Include="Virtualizing\VirtualizingCollection.cs" />
     <Compile Include="WedDownloader.cs" />
     <Page Include="Controls\AudioEntry.xaml">
