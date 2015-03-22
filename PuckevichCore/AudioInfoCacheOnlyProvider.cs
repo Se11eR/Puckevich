@@ -10,12 +10,12 @@ namespace PuckevichCore
 {
     internal class AudioInfoCacheOnlyProvider : IItemsProvider<IAudio>
     {
-        private readonly AudioInfoFactory __InfoFactory;
+        private readonly AudioInfo.AudioInfoFactory __InfoFactory;
         private readonly IAudioStorage __Cache;
         private readonly long __UserId;
         private readonly PlayingStateChangedEventHandler __OptionalStateChangedHandler;
 
-        public AudioInfoCacheOnlyProvider(AudioInfoFactory infoFactory,
+        public AudioInfoCacheOnlyProvider(AudioInfo.AudioInfoFactory infoFactory,
             IAudioStorage cache,
             long userId,
             PlayingStateChangedEventHandler optionalStateChangedHandler = null)

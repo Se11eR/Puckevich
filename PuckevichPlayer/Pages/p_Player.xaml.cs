@@ -28,8 +28,8 @@ namespace PuckevichPlayer
     /// </summary>
     public partial class p_Player : Page, INotifyPropertyChanged
     {
-        private const int PAGE_SIZE = 100;
-        private const int PAGE_TIMEOUT = 1000 * 60; //1 minute
+        private const int PAGE_SIZE = 20;
+        private const int PAGE_TIMEOUT = 1000 * 20; //20 sec
 
         private readonly ICollection<AudioModel> __VkProvider;
         private readonly ICollection<AudioModel> __CachedProvider;
@@ -37,15 +37,18 @@ namespace PuckevichPlayer
         private volatile AudioModel __CurrentActive;
         private readonly SemaphoreSlim __ProgressSemaphore = new SemaphoreSlim(1);
         private bool __IsCacheMode;
+        private Tuple<int, int> __CurrentVisibleListBoxItems;
 
         public p_Player(IItemsProvider<IAudio> vkProvider, IItemsProvider<IAudio> cachedProvider, string userFirstName)
         {
-            __VkProvider = new AsyncVirtualizingCollection<AudioModel>(new AudioModelProviderWrapper(vkProvider),
-                PAGE_SIZE,
-                PAGE_TIMEOUT);
+            __VkProvider =
+                new AsyncVirtualizingCollection<AudioModel>(
+                    new AudioModelProviderWrapper(vkProvider, () => __CurrentActive),
+                    PAGE_SIZE,
+                    PAGE_TIMEOUT);
 
             __CachedProvider = new ItemsProviderCollectionWrapper<AudioModel>(
-                new AudioModelProviderWrapper(cachedProvider));
+                new AudioModelProviderWrapper(cachedProvider, () => __CurrentActive));
 
             InitializeComponent();
             DataContext = this;
@@ -123,8 +126,6 @@ namespace PuckevichPlayer
 
         public string PlayerTitle { get; private set; }
 
-        
-
         public bool IsCacheMode
         {
             get { return __IsCacheMode; }
@@ -157,5 +158,4 @@ namespace PuckevichPlayer
             AudioList = GetModelsList(IsCacheMode);
         }
     }
-
 }

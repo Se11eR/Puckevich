@@ -44,6 +44,11 @@ namespace PuckevichPlayer
             }
         }
 
+        public long AudioId
+        {
+            get { return __InternalAudio.AudioId; }
+        }
+
         public string Artist
         {
             get

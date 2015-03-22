@@ -12,10 +12,12 @@ namespace PuckevichPlayer
     public class AudioModelProviderWrapper : IItemsProvider<AudioModel>
     {
         private readonly IItemsProvider<IAudio> __InternalProvider;
+        private readonly Func<AudioModel> __GetCurrentActive;
 
-        public AudioModelProviderWrapper(IItemsProvider<IAudio> internalProvider)
+        public AudioModelProviderWrapper(IItemsProvider<IAudio> internalProvider, Func<AudioModel> getCurrentActive)
         {
             __InternalProvider = internalProvider;
+            __GetCurrentActive = getCurrentActive;
         }
 
         public int FetchCount()
@@ -25,7 +27,11 @@ namespace PuckevichPlayer
 
         public IList<AudioModel> FetchRange(int startIndex, int count)
         {
-            return __InternalProvider.FetchRange(startIndex, count).Select(audio => new AudioModel(audio)).ToList();
+            return __InternalProvider.FetchRange(startIndex, count).Select(audio =>
+            {
+                var cur = __GetCurrentActive();
+                return cur != null && audio.AudioId == cur.AudioId ? cur : new AudioModel(audio);
+            }).ToList();
         }
     }
 }

@@ -21,13 +21,13 @@ namespace PuckevichCore
 
         private readonly Func<long, int, int, ReadOnlyCollection<Audio>> __GetAudio;
         private readonly Func<long, int> __GetCount;
-        private readonly AudioInfoFactory __InfoFactory;
+        private readonly AudioInfo.AudioInfoFactory __InfoFactory;
         private readonly PlayingStateChangedEventHandler __OptionalStateChangedHandler;
         private readonly long __UserId;
 
         public AudioInfoProvider(Func<long, int, int, ReadOnlyCollection<Audio>> getAudio,
             Func<long, int> getCount,
-            AudioInfoFactory infoFactory,
+            AudioInfo.AudioInfoFactory infoFactory,
             long userId,
             PlayingStateChangedEventHandler optionalStateChangedHandler = null)
         {

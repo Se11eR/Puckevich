@@ -82,7 +82,7 @@ namespace PuckevichCore
 
         private void InitProviders(IWebDownloader downloader, VkApi api, long user)
         {
-            var factory = new AudioInfoFactory(__AudioStorage, downloader);
+            var factory = new AudioInfo.AudioInfoFactory(__AudioStorage, downloader);
             PlayingStateChangedEventHandler handler = playable =>
             {
                 if (__IsDisposingNow == 0)
