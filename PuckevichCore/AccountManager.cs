@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
+using Newtonsoft.Json;
+using PuckevichCore.CacheStorage;
 using PuckevichCore.DataVirtualization;
+using PuckevichCore.Exceptions;
 using PuckevichCore.Interfaces;
 using Un4seen.Bass;
 using VkNet;
@@ -16,7 +21,6 @@ namespace PuckevichCore
         private const string UNIVERSAL_EMAIL = "cortm520@mail.ru";
         private const string UNIVERSAL_PASSWORD = "puck232";
 
-
         private static readonly Object __SingletoneLock = new Object();
         private static AccountManager __Instance;
 
@@ -25,7 +29,6 @@ namespace PuckevichCore
         private int __IsDisposingNow = 0;
         private readonly ISet<IManagedPlayable> __OpenedChannels = new HashSet<IManagedPlayable>();
         private IAudioStorage __AudioStorage;
-
 
         private AccountManager()
         {
@@ -54,7 +57,7 @@ namespace PuckevichCore
             get { return __InfoCacheOnlyProvider; }
         }
 
-        public void Init(long userId, IFileStorage storage, IWebDownloader downloader)
+        public void Init(string userId, IFileStorage storage, IWebDownloader downloader)
         {
             InitInternal(UNIVERSAL_EMAIL, UNIVERSAL_PASSWORD, storage, downloader, userId);
         }
@@ -64,19 +67,50 @@ namespace PuckevichCore
             InitInternal(email, password, storage, downloader);
         }
 
-        private void InitInternal(string email, string password, IFileStorage storage, IWebDownloader downloader, long? userId = null)
+        private void InitInternal(string email, string password, IFileStorage storage, IWebDownloader downloader, 
+            string userId = null)
         {
             var api = new VkApi();
             api.Authorize(APP_ID, email, password, Settings.Audio);
+
+            var id = userId != null ? GetUserIdFromString(api, userId) : api.UserId.Value;
+            
             __AudioStorage = new CacheStorage.CacheStorage(storage);
 
-            UserFirstName = api.Users.Get(api.UserId.Value).FirstName;
-
-            InitProviders(downloader, api, userId ?? api.UserId.Value);
+            UserFirstName = api.Users.Get(id).FirstName;
+            InitProviders(downloader, api, id);
 
             if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
             {
                 throw new Exception("Failed to initizlize BASS! Error code: " + Bass.BASS_ErrorGetCode());
+            }
+        }
+
+        private long GetUserIdFromString(VkApi api, string id)
+        {
+            long longId;
+            var dict = new Dictionary<string, string>();
+            dict.Add("user_ids", id);
+            try
+            {
+                var res = api.Invoke("users.get", dict, true);
+
+                var serializer = new JsonSerializer();
+                dynamic resDict =
+                    serializer.Deserialize(new JsonTextReader(new StringReader(res)));
+
+                id = resDict["response"][0]["uid"];
+                if (!Int64.TryParse(id, out longId))
+                    throw new AuthException("Invalid id!");
+                return longId;
+            }
+            catch
+            {
+                if (id.StartsWith("id"))
+                    id = id.Substring(2);
+                if (!Int64.TryParse(id, out longId))
+                    throw new AuthException("Invalid id!");
+                return longId;
             }
         }
 

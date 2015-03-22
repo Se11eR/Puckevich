@@ -1,0 +1,56 @@
+﻿<Page x:Class="PuckevichPlayer.Pages.p_Login"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+      xmlns:converters="clr-namespace:PuckevichPlayer.Converters"
+      mc:Ignorable="d" 
+      Background="White"
+      d:DesignHeight="850" d:DesignWidth="478"
+	Title="p_Login">
+    <Page.Resources>
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+    </Page.Resources>
+    <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Row="0" Margin="0 0 0 0">
+            <TextBlock Text="Enter"
+                       HorizontalAlignment="Center"
+                       FontSize="60"
+                       Foreground="Black"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel.Resources>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="FontSize" Value="30"/>
+                        <Setter Property="FontWeight" Value="ExtraLight" />
+                        <Setter Property="Foreground" Value="Black" />
+                        <Setter Property="Margin" Value="0 -5 0 10" />
+                    </Style>
+                </StackPanel.Resources>
+                <TextBlock Text="your page" />
+            </StackPanel>
+            <Grid Width="380">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="http://vk.com/ " FontSize="30" Foreground="Gray" VerticalAlignment="Center" />
+                <TextBox Grid.Column="1" FontSize="30" VerticalAlignment="Center"
+                         Text="{Binding UserVkId, UpdateSourceTrigger=PropertyChanged}"/>
+            </Grid>
+        </StackPanel>
+        <Button Content="Start listening" Grid.Row="1" Width="150" Margin="0 20 0 0" 
+                IsEnabled="{Binding LoggingIn, Converter={StaticResource InverseBoolConverter}}"
+                Click="ButtonBase_OnClick"/>
+        <controls:ProgressRing Grid.Row="2" IsActive="{Binding LoggingIn}" Margin="0 50 0 0"
+                               Width="100" Height="100" />
+    </Grid>
+</Page>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,12 +44,20 @@ namespace PuckevichPlayer
             string email = "vkontakt232@gmail.com";
             string pass = "ohmaniwillneverforgiveyourassforthisshit";
 
-            await Task.Run(() => AccountManager.Instance.Init(email, pass, new IsolatedStorageFileStorage(), web));
+            var storage = new IsolatedStorageFileStorage();
+            var login = new p_Login(userId => AccountManager.Instance.Init(userId, storage, web));
+            login.PropertyChanged += LoginOnPropertyChanged;
+            Content = login;
+        }
 
-            
-            Content = new p_Player(AccountManager.Instance.AudioInfoProvider,
-                AccountManager.Instance.AudioInfoCacheOnlyProvider,
-                AccountManager.Instance.UserFirstName);
+        private void LoginOnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
+        {
+            if (propertyChangedEventArgs.PropertyName == "LoggedIn")
+            {
+                Content = new p_Player(AccountManager.Instance.AudioInfoProvider,
+                    AccountManager.Instance.AudioInfoCacheOnlyProvider,
+                    AccountManager.Instance.UserFirstName);
+            }
         }
     }
 }

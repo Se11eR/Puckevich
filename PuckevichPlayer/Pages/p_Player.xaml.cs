@@ -136,7 +136,6 @@ namespace PuckevichPlayer
             }
         }
 
-
         public ICollection<AudioModel> AudioList
         {
             get
