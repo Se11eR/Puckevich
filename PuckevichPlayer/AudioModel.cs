@@ -18,7 +18,6 @@ namespace PuckevichPlayer
         private readonly IManagedPlayable __Playable;
         private PlayingState __PlayingState;
         private int __TimePlayed;
-        private double __Downloaded;
 
         public AudioModel(IAudio internalAudio)
         {
@@ -26,8 +25,12 @@ namespace PuckevichPlayer
             __Playable = __InternalAudio.Playable;
 
             __InternalAudio.Playable.PlayingStateChanged += sender => AudioState = sender.State;
-            __InternalAudio.Playable.PercentsDownloadedChanged += 
-                sender => Downloaded = sender.PercentsDownloaded;
+            __InternalAudio.Playable.PercentsDownloadedChanged +=
+                sender =>
+                {
+                    OnPropertyChanged("IsCached");
+                    OnPropertyChanged("Downloaded");
+                };
             __InternalAudio.Playable.SecondsPlayedChanged += sender => OnPropertyChanged("TimePlayed");
 
             Downloaded = __InternalAudio.Playable.PercentsDownloaded;
@@ -90,13 +93,10 @@ namespace PuckevichPlayer
         {
             get
             {
-                return __Downloaded;
+                return __Playable.PercentsDownloaded;
             }
             private set
             {
-                __Downloaded = value;
-                OnPropertyChanged();
-                OnPropertyChanged("IsCached");
             }
         }
 
@@ -104,7 +104,7 @@ namespace PuckevichPlayer
         {
             get
             {
-                return __Downloaded == 100.0;
+                return Downloaded == 100.0;
             }
         }
 
@@ -133,8 +133,6 @@ namespace PuckevichPlayer
         {
             if (__Playable.State != PlayingState.Stopped)
             {
-                if (__Downloaded == 100.0)
-                    __Downloaded = 0;
                  __Playable.Stop();
             }
         }
