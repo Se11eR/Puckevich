@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using PuckevichCore.Exceptions;
 
 namespace PuckevichPlayer.Pages
 {
@@ -25,6 +26,7 @@ namespace PuckevichPlayer.Pages
         private readonly Action<string> __LoginAction;
         private bool __LoggingIn;
         private bool __LoggedIn;
+        private string __ErrorMessage;
 
         public p_Login(Action<string> loginAction)
         {
@@ -55,11 +57,38 @@ namespace PuckevichPlayer.Pages
             }
         }
 
+        public string ErrorMessage
+        {
+            get { return __ErrorMessage; }
+            set
+            {
+                __ErrorMessage = value;
+                OnPropertyChanged();
+            }
+        }
+
         private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             LoggingIn = true;
-            await Task.Run(() => __LoginAction(UserVkId));
-            LoggedIn = true;
+            try
+            {
+                await Task.Run(() => __LoginAction(UserVkId));
+
+                ErrorMessage = null;
+                LoggedIn = true;
+            }
+            catch (AuthIDException)
+            {
+                ErrorMessage = "Error finding your page. Check page address.";
+            }
+            catch (AuthException)
+            {
+                ErrorMessage = "Error accessing vk.com. Try again later.";
+            }
+            finally
+            {
+                LoggingIn = false;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

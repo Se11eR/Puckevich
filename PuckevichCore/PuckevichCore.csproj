@@ -109,6 +109,9 @@
     <Compile Include="Error.cs" />
     <Compile Include="Exceptions\AudioAccessException.cs" />
     <Compile Include="Exceptions\AuthException.cs" />
+    <Compile Include="Exceptions\AuthIDException.cs" />
+    <Compile Include="Exceptions\BassException.cs" />
+    <Compile Include="Exceptions\PuckevichException.cs" />
     <Compile Include="Interfaces\IAudio.cs" />
     <Compile Include="Interfaces\ICacheStream.cs" />
     <Compile Include="Interfaces\IFileStorage.cs" />

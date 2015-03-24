@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
+using PuckevichCore.Exceptions;
 using PuckevichCore.Interfaces;
 using Un4seen.Bass;
 
@@ -116,7 +117,7 @@ namespace PuckevichCore
                 webStream = __Downloader.GetUrlStream(__Url, __CacheStream.Position, out audioLengthInBytes);
 
                 if (webStream == null)
-                    throw new ApplicationException("Error while creating Url Stream!");
+                    throw new PuckevichException("Error while creating Url Stream!");
 
                 if (__RequestTasksStop)
                     return;
@@ -185,7 +186,7 @@ namespace PuckevichCore
             }
 
             if (__ProducerConsumerStream == null)
-                throw new ApplicationException("BassReadProc: __ProducerConsumerStream == null");
+                throw new PuckevichException("BassReadProc: __ProducerConsumerStream == null");
 
             if (__RequestTasksStop)
                 return 0;
@@ -241,7 +242,7 @@ namespace PuckevichCore
                 case AudioStorageStatus.PartiallyStored:
                 case AudioStorageStatus.NotStored:
                     if (__Url == null)
-                        throw new Exception("__Url cannot be null for not cached audio!");
+                        throw new PuckevichException("__Url cannot be null for not cached audio!");
 
                     __WebDownloaderTask = Task.Run((Action)WebDownloader);
 
@@ -353,11 +354,6 @@ namespace PuckevichCore
 
         ~AudioPlayable()
         {
-            //if (__PlayingState != PlayingState.Stopped && __PlayingState != PlayingState.NotInit)
-            //{
-            //    throw new ApplicationException("This AudioPlayable was not stoppped before destruction!");
-            //}
-
             Bass.BASS_StreamFree(__BassStream);
 
             if (__ProducerConsumerStream != null)

@@ -1,4 +1,5 @@
 ﻿using System;
+using PuckevichCore.Exceptions;
 using Un4seen.Bass;
 
 namespace PuckevichCore
@@ -7,12 +8,12 @@ namespace PuckevichCore
     {
         internal static void HandleBASSError(string BASSfuncName, object errorCode)
         {
-            throw new Exception(BASSfuncName + "(): error " + errorCode.ToString());
+            throw new BassException(BASSfuncName + "(): error " + errorCode.ToString());
         }
 
         internal static void HandleBASSError(string BASSfuncName)
         {
-            throw new Exception(BASSfuncName + "(): error " + Bass.BASS_ErrorGetCode());
+            throw new BassException(BASSfuncName + "(): error " + Bass.BASS_ErrorGetCode());
         }
     }
 }

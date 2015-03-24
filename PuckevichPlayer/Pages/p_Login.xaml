@@ -12,16 +12,17 @@
     <Page.Resources>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
     </Page.Resources>
-    <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+    <Grid  HorizontalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Row="0" Margin="0 0 0 0">
+        <StackPanel Grid.Row="0" Margin="0 200 0 0">
             <TextBlock Text="Enter"
                        HorizontalAlignment="Center"
                        FontSize="60"
@@ -47,10 +48,17 @@
                          Text="{Binding UserVkId, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
         </StackPanel>
-        <Button Content="Start listening" Grid.Row="1" Width="150" Margin="0 20 0 0" 
+        <TextBlock Grid.Row="1" Text="{Binding ErrorMessage}" FontSize="15" Foreground="Red"
+                   Margin="0 10 0 10"
+                   HorizontalAlignment="Center"/>
+        <Button Grid.Row="2" Width="200" Padding="20 10 20 10"  
                 IsEnabled="{Binding LoggingIn, Converter={StaticResource InverseBoolConverter}}"
-                Click="ButtonBase_OnClick"/>
-        <controls:ProgressRing Grid.Row="2" IsActive="{Binding LoggingIn}" Margin="0 50 0 0"
-                               Width="100" Height="100" />
+                Click="ButtonBase_OnClick">
+            <Button.Content>
+                <TextBlock FontSize="25">Start listening</TextBlock>
+            </Button.Content>
+        </Button>
+        <controls:ProgressRing Grid.Row="3" IsActive="{Binding LoggingIn}" Margin="0 50 0 0" VerticalAlignment="Center"
+                               Width="150" Height="150" />
     </Grid>
 </Page>

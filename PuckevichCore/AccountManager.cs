@@ -71,7 +71,14 @@ namespace PuckevichCore
             string userId = null)
         {
             var api = new VkApi();
-            api.Authorize(APP_ID, email, password, Settings.Audio);
+            try
+            {
+                api.Authorize(APP_ID, email, password, Settings.Audio);
+            }
+            catch (Exception e)
+            {
+                throw new AuthException("Authorization error! Original exception:\n" + e.ToString());
+            }
 
             var id = userId != null ? GetUserIdFromString(api, userId) : api.UserId.Value;
             
@@ -82,13 +89,20 @@ namespace PuckevichCore
 
             if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
             {
-                throw new Exception("Failed to initizlize BASS! Error code: " + Bass.BASS_ErrorGetCode());
+                Error.HandleBASSError("Failed to initizlize BASS! Error code: ", Bass.BASS_ErrorGetCode());
             }
         }
 
         private long GetUserIdFromString(VkApi api, string id)
         {
             long longId;
+            if (id.StartsWith("id"))
+            {
+                id = id.Substring(2);
+                if (Int64.TryParse(id, out longId))
+                    return longId;
+            }
+            
             var dict = new Dictionary<string, string>();
             dict.Add("user_ids", id);
             try
@@ -101,16 +115,12 @@ namespace PuckevichCore
 
                 id = resDict["response"][0]["uid"];
                 if (!Int64.TryParse(id, out longId))
-                    throw new AuthException("Invalid id!");
+                    throw new AuthIDException("Invalid id!");
                 return longId;
             }
             catch
             {
-                if (id.StartsWith("id"))
-                    id = id.Substring(2);
-                if (!Int64.TryParse(id, out longId))
-                    throw new AuthException("Invalid id!");
-                return longId;
+                throw new AuthIDException("Invalid id!");
             }
         }
 
