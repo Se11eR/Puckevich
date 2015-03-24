@@ -28,14 +28,14 @@ namespace PuckevichCore
 
         public int FetchCount()
         {
-            return __Cache.Count;
+            return __Cache.GetCount(__UserId);
         }
 
         public IList<IAudio> FetchRange(int startIndex, int count)
         {
             return Enumerable.Range(startIndex, count).Select(i =>
             {
-                IAudio stub = __Cache.GetAt(i);
+                IAudio stub = __Cache.GetAt(__UserId, i);
                 return __InfoFactory.Create(__UserId,
                     startIndex + i,
                     stub,

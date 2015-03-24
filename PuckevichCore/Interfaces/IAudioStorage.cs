@@ -14,12 +14,12 @@ namespace PuckevichCore.Interfaces
     {
         ICacheStream GetCacheStream(IAudio audio);
 
-        IAudio GetAt(int index);
+        IAudio GetAt(long userId, int index);
 
         bool CheckCached(IAudio audio);
 
         void RemovecachedAudio(long auidiId);
 
-        int Count { get; }
+        int GetCount(long userId);
     }
 }

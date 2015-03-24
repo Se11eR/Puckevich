@@ -65,8 +65,7 @@
                     <ColumnDefinition />
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Border BorderThickness="0 0 0 0" BorderBrush="{DynamicResource BlackBrush}"
-                        PreviewMouseDown="Login_OnPreviewMouseDown">
+                <Border PreviewMouseDown="Login_OnPreviewMouseDown" Background="Transparent">
                     <Viewbox >
                         <ContentControl Content="{StaticResource appbar_user_white}"/>
                     </Viewbox>
@@ -76,7 +75,7 @@
                            Foreground="White"
                            FontWeight="Normal"
                            Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                <Border Grid.Column="2" BorderThickness="0" PreviewMouseDown="Cached_OnPreviewMouseDown">
+                <Border Grid.Column="2" PreviewMouseDown="Cached_OnPreviewMouseDown">
                     <Border.Style>
                         <Style TargetType="Border">
                             <Setter Property="Background" Value="Transparent"/>

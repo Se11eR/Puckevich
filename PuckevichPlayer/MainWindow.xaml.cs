@@ -28,7 +28,7 @@ namespace PuckevichPlayer
     /// </summary>
     public partial class MainWindow : Window
     {
-        private AccountManager __AccountManager;
+        private PlayerLogin __PlayerLogin;
         private p_Login __LoginPage;
         private p_Player __PlayerPage;
         private WedDownloader __Downloader;
@@ -41,11 +41,11 @@ namespace PuckevichPlayer
 
         private void OnClosed(object sender, EventArgs args)
         {
-            if (__AccountManager != null)
-                __AccountManager.Dispose();
+            if (__PlayerLogin != null)
+                __PlayerLogin.Dispose();
         }
 
-        private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             __Downloader = new WedDownloader();
             CreateLogin();
@@ -55,17 +55,17 @@ namespace PuckevichPlayer
         {
             if (Trans.Items.Contains(__LoginPage))
                 Trans.Items.Remove(__LoginPage);
-            if (__AccountManager != null)
+            if (__PlayerLogin != null)
             {
-                __AccountManager.Dispose();
-                __AccountManager = null;
+                __PlayerLogin.Dispose();
+                __PlayerLogin = null;
             }
 
             __LoginPage = null;
             __LoginPage =
                 new p_Login(
                     userId =>
-                        __AccountManager = new AccountManager(userId, new IsolatedStorageFileStorage(), __Downloader));
+                        __PlayerLogin = new PlayerLogin(userId, new IsolatedStorageFileStorage(), __Downloader));
             __LoginPage.PropertyChanged += LoginOnPropertyChanged;
             Trans.Items.Add(__LoginPage);
         }
@@ -74,16 +74,16 @@ namespace PuckevichPlayer
         {
             if (propertyChangedEventArgs.PropertyName == "LoggedIn")
             {
-                __PlayerPage = new p_Player(__AccountManager.AudioInfoProvider,
-                    __AccountManager.AudioInfoCacheOnlyProvider,
+                __PlayerPage = new p_Player(__PlayerLogin.AudioInfoProvider,
+                    __PlayerLogin.AudioInfoCacheOnlyProvider,
                     NavigateBack,
-                    __AccountManager.UserFirstName
+                    __PlayerLogin.UserFirstName
                     );
                 Trans.Items.Add(__PlayerPage);
                 Trans.Transition = new SlideTransition(Direction.RightToLeft)
                 {
                     Duration = new Duration(
-                        TimeSpan.FromSeconds(0.5))
+                        TimeSpan.FromSeconds(0.3))
                 };
                 Trans.ApplyTransition(__LoginPage, __PlayerPage);
             }
@@ -96,7 +96,7 @@ namespace PuckevichPlayer
             Trans.Transition = new SlideTransition(Direction.LeftToRight)
             {
                 Duration = new Duration(
-                    TimeSpan.FromSeconds(0.5))
+                    TimeSpan.FromSeconds(0.3))
             };
             Trans.ApplyTransition(__PlayerPage, __LoginPage);
 

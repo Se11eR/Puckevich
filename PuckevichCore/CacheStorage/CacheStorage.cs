@@ -15,15 +15,15 @@ namespace PuckevichCore.CacheStorage
         private const string FILE_NAME_PATTERN = "{0} - {1}#{2}#.mp3";
 
         private readonly Dictionary<long, JsonAudioModel> __AudioDict = new Dictionary<long, JsonAudioModel>();
-        private readonly SortedList<int, long> __AudioIdList = new SortedList<int, long>();
+        private readonly Dictionary<long, SortedList<int, long>> __AudioIdList = new Dictionary<long, SortedList<int, long>>();
+        private readonly JsonSerializer __Serializer;
         private JsonTextWriter __Writer;
-        private JsonSerializer __Serializer;
 
         public CacheStorage(IFileStorage storage)
         {
             __Storage = storage;
 
-            Stream s = !__Storage.FileExists(MAP_FILE)
+            var s = !__Storage.FileExists(MAP_FILE)
                            ? __Storage.CreateFile(MAP_FILE)
                            : __Storage.OpenFile(MAP_FILE, FileMode.Open);
 
@@ -32,9 +32,12 @@ namespace PuckevichCore.CacheStorage
                 __Serializer = new JsonSerializer { Formatting = Formatting.Indented };
                 __AudioDict = __Serializer.Deserialize<Dictionary<long, JsonAudioModel>>(file) ?? new Dictionary<long, JsonAudioModel>();
             }
+
             foreach (var jsonAudioModel in __AudioDict)
             {
-                __AudioIdList.Add(jsonAudioModel.Value.Index, jsonAudioModel.Key);
+                if (!__AudioIdList.ContainsKey(jsonAudioModel.Value.UserId))
+                    __AudioIdList.Add(jsonAudioModel.Value.UserId, new SortedList<int, long>());
+                __AudioIdList[jsonAudioModel.Value.UserId].Add(jsonAudioModel.Value.Index, jsonAudioModel.Key);
             }
         }
 
@@ -53,11 +56,6 @@ namespace PuckevichCore.CacheStorage
             return s;
         }
 
-        private async Task<ICacheStream> LocateCacheStreamAsync(JsonAudioModel audio)
-        {
-            return await Task.Run(() => LocateCacheStream(audio));
-        }
-
         private ICacheStream CreateCacheStream(IAudio audio)
         {
             var audioModel = new JsonAudioModel()
@@ -71,7 +69,11 @@ namespace PuckevichCore.CacheStorage
             };
 
             __AudioDict.Add(audioModel.AudioId, audioModel);
-            __AudioIdList.Add(audioModel.Index, audioModel.AudioId);
+
+            if (!__AudioIdList.ContainsKey(audio.UserId))
+                __AudioIdList.Add(audio.UserId, new SortedList<int, long>());
+
+            __AudioIdList[audioModel.UserId].Add(audioModel.Index, audioModel.AudioId);
             ICacheStream s = new CacheStream(__Storage.CreateFile(MakeFileName(audioModel)), audioModel);
 
             return s;
@@ -98,11 +100,12 @@ namespace PuckevichCore.CacheStorage
             return s;
         }
 
-        public IAudio GetAt(int index)
+        public IAudio GetAt(long userId, int index)
         {
             JsonAudioModel audioModel;
 
-            if (__AudioDict.TryGetValue(__AudioIdList[__AudioIdList.Keys[index]], out audioModel))
+            var selectedUserSortedList = __AudioIdList[userId];
+            if (__AudioDict.TryGetValue(selectedUserSortedList[selectedUserSortedList.Keys[index]], out audioModel))
             {
                 if (__Storage.FileExists(MakeFileName(audioModel)))
                 {
@@ -131,12 +134,15 @@ namespace PuckevichCore.CacheStorage
 
         public void RemovecachedAudio(long auidiId)
         {
-            __AudioDict.Remove(auidiId);
+            throw new NotImplementedException();
         }
 
-        public int Count
+        public int GetCount(long userId)
         {
-            get { return __AudioDict.Keys.Count; }
+            if (!__AudioIdList.ContainsKey(userId))
+                __AudioIdList.Add(userId, new SortedList<int, long>());
+
+            return __AudioIdList[userId].Keys.Count;
         }
 
         public void Dispose()

@@ -15,7 +15,7 @@ using VkNet.Enums.Filters;
 
 namespace PuckevichCore
 {
-    public class AccountManager: IDisposable
+    public class PlayerLogin: IDisposable
     {
         private const int APP_ID = 4544915;
         private const string UNIVERSAL_EMAIL = "cortm520@mail.ru";
@@ -28,7 +28,7 @@ namespace PuckevichCore
         private IAudioStorage __AudioStorage;
         private bool __IsInit;
 
-        static AccountManager()
+        static PlayerLogin()
         {
             if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
             {
@@ -36,12 +36,12 @@ namespace PuckevichCore
             }
         }
 
-        public AccountManager(string userId, IFileStorage storage, IWebDownloader downloader)
+        public PlayerLogin(string userId, IFileStorage storage, IWebDownloader downloader)
         {
             InitInternal(UNIVERSAL_EMAIL, UNIVERSAL_PASSWORD, storage, downloader, userId);
         }
 
-        public AccountManager(string email, string password, IFileStorage storage, IWebDownloader downloader)
+        public PlayerLogin(string email, string password, IFileStorage storage, IWebDownloader downloader)
         {
             InitInternal(email, password, storage, downloader);
         }
