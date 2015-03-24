@@ -21,7 +21,7 @@ namespace PuckevichPlayer.Pages
     /// <summary>
     /// Interaction logic for p_Login.xaml
     /// </summary>
-    public partial class p_Login : Page, INotifyPropertyChanged
+    public partial class p_Login : UserControl, INotifyPropertyChanged
     {
         private readonly Action<string> __LoginAction;
         private bool __LoggingIn;

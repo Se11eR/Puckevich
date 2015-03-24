@@ -1,4 +1,4 @@
-﻿<Page x:Class="PuckevichPlayer.Pages.p_Login"
+﻿<UserControl x:Class="PuckevichPlayer.Pages.p_Login"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -7,11 +7,10 @@
       xmlns:converters="clr-namespace:PuckevichPlayer.Converters"
       mc:Ignorable="d" 
       Background="White"
-      d:DesignHeight="850" d:DesignWidth="478"
-	Title="p_Login">
-    <Page.Resources>
+      d:DesignHeight="850" d:DesignWidth="478">
+    <UserControl.Resources>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
-    </Page.Resources>
+    </UserControl.Resources>
     <Grid  HorizontalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -61,4 +60,4 @@
         <controls:ProgressRing Grid.Row="3" IsActive="{Binding LoggingIn}" Margin="0 50 0 0" VerticalAlignment="Center"
                                Width="150" Height="150" />
     </Grid>
-</Page>
+</UserControl>

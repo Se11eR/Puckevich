@@ -26,8 +26,9 @@ namespace PuckevichPlayer
     /// <summary>
     /// Interaction logic for p_Player.xaml
     /// </summary>
-    public partial class p_Player : Page, INotifyPropertyChanged
+    public partial class p_Player : UserControl, INotifyPropertyChanged
     {
+        private readonly Action __WhenLoginClickeed;
         private const int PAGE_SIZE = 20;
         private const int PAGE_TIMEOUT = 1000 * 20; //20 sec
 
@@ -39,8 +40,11 @@ namespace PuckevichPlayer
         private bool __IsCacheMode;
         private Tuple<int, int> __CurrentVisibleListBoxItems;
 
-        public p_Player(IItemsProvider<IAudio> vkProvider, IItemsProvider<IAudio> cachedProvider, string userFirstName)
+        public p_Player(IItemsProvider<IAudio> vkProvider, IItemsProvider<IAudio> cachedProvider, 
+            Action whenLoginClickeed,
+            string userFirstName)
         {
+            __WhenLoginClickeed = whenLoginClickeed;
             __VkProvider =
                 new AsyncVirtualizingCollection<AudioModel>(
                     new AudioModelProviderWrapper(vkProvider, () => __CurrentActive),
@@ -155,6 +159,11 @@ namespace PuckevichPlayer
         {
             IsCacheMode = !IsCacheMode;
             AudioList = GetModelsList(IsCacheMode);
+        }
+
+        private void Login_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            __WhenLoginClickeed();
         }
     }
 }

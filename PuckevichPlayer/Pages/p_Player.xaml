@@ -1,4 +1,4 @@
-﻿<Page x:Class="PuckevichPlayer.p_Player"
+﻿<UserControl x:Class="PuckevichPlayer.p_Player"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -7,9 +7,8 @@
       xmlns:smapleData="clr-namespace:PuckevichPlayer.Pages.SmapleData"
       mc:Ignorable="d" 
       d:DesignHeight="850" d:DesignWidth="478"
-      d:DataContext="{Binding Source={StaticResource StubPlayerContext}}"
-	  Title="p_Player">
-    <Page.Resources>
+      d:DataContext="{Binding Source={StaticResource StubPlayerContext}}">
+    <UserControl.Resources>
         <smapleData:StubPlayerContext x:Key="StubPlayerContext"/>
         <DataTemplate x:Key="MetroListBoxItem">
             <cont:AudioEntry AudioEntryClick="AudioEntry_OnMouseDown"/>
@@ -53,7 +52,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-    </Page.Resources>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -66,7 +65,8 @@
                     <ColumnDefinition />
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Border BorderThickness="0 0 0 0" BorderBrush="{DynamicResource BlackBrush}">
+                <Border BorderThickness="0 0 0 0" BorderBrush="{DynamicResource BlackBrush}"
+                        PreviewMouseDown="Login_OnPreviewMouseDown">
                     <Viewbox >
                         <ContentControl Content="{StaticResource appbar_user_white}"/>
                     </Viewbox>
@@ -107,4 +107,4 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         </ListBox>
     </Grid>
-</Page>
+</UserControl>

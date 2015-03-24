@@ -21,30 +21,34 @@ namespace PuckevichCore
         private const string UNIVERSAL_EMAIL = "cortm520@mail.ru";
         private const string UNIVERSAL_PASSWORD = "puck232";
 
-        private static readonly Object __SingletoneLock = new Object();
-        private static AccountManager __Instance;
-
         private AudioInfoProvider __InfoProvider;
         private AudioInfoCacheOnlyProvider __InfoCacheOnlyProvider;
         private int __IsDisposingNow = 0;
         private readonly ISet<IManagedPlayable> __OpenedChannels = new HashSet<IManagedPlayable>();
         private IAudioStorage __AudioStorage;
+        private bool __IsInit;
 
-        private AccountManager()
+        static AccountManager()
         {
+            if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
+            {
+                Error.HandleBASSError("Failed to initizlize BASS! Error code: ", Bass.BASS_ErrorGetCode());
+            }
         }
 
-        public static AccountManager Instance
+        public AccountManager(string userId, IFileStorage storage, IWebDownloader downloader)
         {
-            get
-            {
-                if (__Instance != null) return __Instance;
-                Monitor.Enter(__SingletoneLock);
-                var temp = new AccountManager();
-                Interlocked.Exchange(ref __Instance, temp);
-                Monitor.Exit(__SingletoneLock);
-                return __Instance;
-            }
+            InitInternal(UNIVERSAL_EMAIL, UNIVERSAL_PASSWORD, storage, downloader, userId);
+        }
+
+        public AccountManager(string email, string password, IFileStorage storage, IWebDownloader downloader)
+        {
+            InitInternal(email, password, storage, downloader);
+        }
+
+        public bool IsInit
+        {
+            get { return __IsInit; }
         }
 
         public IItemsProvider<IAudio> AudioInfoProvider
@@ -55,16 +59,6 @@ namespace PuckevichCore
         public IItemsProvider<IAudio> AudioInfoCacheOnlyProvider
         {
             get { return __InfoCacheOnlyProvider; }
-        }
-
-        public void Init(string userId, IFileStorage storage, IWebDownloader downloader)
-        {
-            InitInternal(UNIVERSAL_EMAIL, UNIVERSAL_PASSWORD, storage, downloader, userId);
-        }
-
-        public void Init(string email, string password, IFileStorage storage, IWebDownloader downloader)
-        {
-            InitInternal(email, password, storage, downloader);
         }
 
         private void InitInternal(string email, string password, IFileStorage storage, IWebDownloader downloader, 
@@ -83,14 +77,10 @@ namespace PuckevichCore
             var id = userId != null ? GetUserIdFromString(api, userId) : api.UserId.Value;
             
             __AudioStorage = new CacheStorage.CacheStorage(storage);
-
             UserFirstName = api.Users.Get(id).FirstName;
             InitProviders(downloader, api, id);
 
-            if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
-            {
-                Error.HandleBASSError("Failed to initizlize BASS! Error code: ", Bass.BASS_ErrorGetCode());
-            }
+            __IsInit = true;
         }
 
         private long GetUserIdFromString(VkApi api, string id)
@@ -159,7 +149,6 @@ namespace PuckevichCore
             }
             if (__AudioStorage != null)
                 __AudioStorage.Dispose();
-            Bass.BASS_Free();
         }
     }
 }
