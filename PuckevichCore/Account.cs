@@ -15,7 +15,7 @@ using VkNet.Enums.Filters;
 
 namespace PuckevichCore
 {
-    public class PlayerLogin: IDisposable
+    public class Account: IDisposable
     {
         private const int APP_ID = 4544915;
         private const string UNIVERSAL_EMAIL = "cortm520@mail.ru";
@@ -25,10 +25,10 @@ namespace PuckevichCore
         private AudioInfoCacheOnlyProvider __InfoCacheOnlyProvider;
         private int __IsDisposingNow = 0;
         private readonly ISet<IManagedPlayable> __OpenedChannels = new HashSet<IManagedPlayable>();
-        private IAudioStorage __AudioStorage;
+        private readonly IAudioStorage __AudioStorage;
         private bool __IsInit;
 
-        static PlayerLogin()
+        static Account()
         {
             BassNet.Registration("npogabeq@gmail.com", "2X1425018152222");
             if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
@@ -37,14 +37,9 @@ namespace PuckevichCore
             }
         }
 
-        public PlayerLogin(string userId, IFileStorage storage, IWebDownloader downloader)
+        public Account(IFileStorage storage)
         {
-            InitInternal(UNIVERSAL_EMAIL, UNIVERSAL_PASSWORD, storage, downloader, userId);
-        }
-
-        public PlayerLogin(string email, string password, IFileStorage storage, IWebDownloader downloader)
-        {
-            InitInternal(email, password, storage, downloader);
+            __AudioStorage = new CacheStorage.CacheStorage(storage);
         }
 
         public bool IsInit
@@ -62,7 +57,17 @@ namespace PuckevichCore
             get { return __InfoCacheOnlyProvider; }
         }
 
-        private void InitInternal(string email, string password, IFileStorage storage, IWebDownloader downloader, 
+        public void Init(string userId, IWebDownloader downloader)
+        {
+            InitInternal(UNIVERSAL_EMAIL, UNIVERSAL_PASSWORD, downloader, userId);
+        }
+
+        public string CheckCachedVkId()
+        {
+            return __AudioStorage.GetLastUserId();
+        }
+
+        private void InitInternal(string email, string password, IWebDownloader downloader, 
             string userId = null)
         {
             var api = new VkApi();
@@ -76,11 +81,9 @@ namespace PuckevichCore
             }
 
             var id = userId != null ? GetUserIdFromString(api, userId) : api.UserId.Value;
-            
-            __AudioStorage = new CacheStorage.CacheStorage(storage);
             UserFirstName = api.Users.Get(id).FirstName;
             InitProviders(downloader, api, id);
-
+            __AudioStorage.StoreLastUserId(userId);
             __IsInit = true;
         }
 

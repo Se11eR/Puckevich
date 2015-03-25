@@ -28,10 +28,11 @@ namespace PuckevichPlayer
     /// </summary>
     public partial class MainWindow : Window
     {
-        private PlayerLogin __PlayerLogin;
+        private Account __Account;
         private p_Login __LoginPage;
         private p_Player __PlayerPage;
         private WedDownloader __Downloader;
+        private bool __FirstLogin = true;
 
         public MainWindow()
         {
@@ -41,8 +42,8 @@ namespace PuckevichPlayer
 
         private void OnClosed(object sender, EventArgs args)
         {
-            if (__PlayerLogin != null)
-                __PlayerLogin.Dispose();
+            if (__Account != null)
+                __Account.Dispose();
         }
 
         private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -55,29 +56,32 @@ namespace PuckevichPlayer
         {
             if (Trans.Items.Contains(__LoginPage))
                 Trans.Items.Remove(__LoginPage);
-            if (__PlayerLogin != null)
+            if (__Account != null)
             {
-                __PlayerLogin.Dispose();
-                __PlayerLogin = null;
+                __Account.Dispose();
+                __Account = null;
             }
 
             __LoginPage = null;
+            __Account = new Account(new IsolatedStorageFileStorage());
             __LoginPage =
-                new p_Login(
-                    userId =>
-                        __PlayerLogin = new PlayerLogin(userId, new IsolatedStorageFileStorage(), __Downloader));
+                new p_Login(__Account.CheckCachedVkId(),
+                    __FirstLogin,
+                    userId => __Account.Init(userId, __Downloader));
             __LoginPage.PropertyChanged += LoginOnPropertyChanged;
             Trans.Items.Add(__LoginPage);
+
+            __FirstLogin = false;
         }
 
         private void LoginOnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
         {
             if (propertyChangedEventArgs.PropertyName == "LoggedIn")
             {
-                __PlayerPage = new p_Player(__PlayerLogin.AudioInfoProvider,
-                    __PlayerLogin.AudioInfoCacheOnlyProvider,
+                __PlayerPage = new p_Player(__Account.AudioInfoProvider,
+                    __Account.AudioInfoCacheOnlyProvider,
                     NavigateBack,
-                    __PlayerLogin.UserFirstName
+                    __Account.UserFirstName
                     );
                 Trans.Items.Add(__PlayerPage);
                 Trans.Transition = new SlideTransition(Direction.RightToLeft)

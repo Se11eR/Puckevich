@@ -12,12 +12,14 @@ namespace PuckevichCore.CacheStorage
     {
         private readonly IFileStorage __Storage;
         private const string MAP_FILE = "audios.json";
-        private const string FILE_NAME_PATTERN = "{0} - {1}#{2}#.mp3";
+        private const string USERID_FILE = "lastuser.id";
+        private const string FILE_NAME_PATTERN = "{0}.mp3";
 
         private readonly Dictionary<long, JsonAudioModel> __AudioDict = new Dictionary<long, JsonAudioModel>();
         private readonly Dictionary<long, SortedList<int, long>> __AudioIdList = new Dictionary<long, SortedList<int, long>>();
         private readonly JsonSerializer __Serializer;
         private JsonTextWriter __Writer;
+        private string __UserId = null;
 
         public CacheStorage(IFileStorage storage)
         {
@@ -39,11 +41,19 @@ namespace PuckevichCore.CacheStorage
                     __AudioIdList.Add(jsonAudioModel.Value.UserId, new SortedList<int, long>());
                 __AudioIdList[jsonAudioModel.Value.UserId].Add(jsonAudioModel.Value.Index, jsonAudioModel.Key);
             }
+
+            if (__Storage.FileExists(USERID_FILE))
+            {
+                using (var file = new StreamReader(__Storage.OpenFile(USERID_FILE, FileMode.Open)))
+                {
+                    __UserId = file.ReadToEnd();
+                }
+            }
         }
 
         private string MakeFileName(JsonAudioModel model)
         {
-            return String.Format(FILE_NAME_PATTERN, model.Artist, model.Title, model.AudioId);
+            return String.Format(FILE_NAME_PATTERN, model.AudioId);
         }
 
         private ICacheStream LocateCacheStream(JsonAudioModel audio)
@@ -137,6 +147,16 @@ namespace PuckevichCore.CacheStorage
             throw new NotImplementedException();
         }
 
+        public void StoreLastUserId(string userId)
+        {
+            __UserId = userId;
+        }
+
+        public string GetLastUserId()
+        {
+            return __UserId;
+        }
+
         public int GetCount(long userId)
         {
             if (!__AudioIdList.ContainsKey(userId))
@@ -151,6 +171,15 @@ namespace PuckevichCore.CacheStorage
             {
                 __Writer = new JsonTextWriter(new StreamWriter(__Storage.OpenFile(MAP_FILE, FileMode.Truncate)));
                 __Serializer.Serialize(__Writer, __AudioDict);
+
+                if (__UserId != null)
+                {
+                    var exists = __Storage.FileExists(USERID_FILE);
+                    using (var file = new StreamWriter(__Storage.OpenFile(USERID_FILE, exists ? FileMode.Truncate : FileMode.CreateNew)))
+                    {
+                        file.Write(__UserId);
+                    }
+                }
             }
             finally
             {

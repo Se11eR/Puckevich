@@ -28,11 +28,16 @@ namespace PuckevichPlayer.Pages
         private bool __LoggedIn;
         private string __ErrorMessage;
 
-        public p_Login(Action<string> loginAction)
+        public p_Login(string lastId, bool immediateLogin, Action<string> loginAction)
         {
-            __LoginAction = loginAction;
             InitializeComponent();
             DataContext = this;
+
+            UserVkId = lastId;
+            __LoginAction = loginAction;
+
+            if (lastId != null && immediateLogin)
+                ButtonBase_OnClick(null, null);
         }
 
         public bool LoggingIn

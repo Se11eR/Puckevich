@@ -20,6 +20,10 @@ namespace PuckevichCore.Interfaces
 
         void RemovecachedAudio(long auidiId);
 
+        void StoreLastUserId(string userId);
+
+        string GetLastUserId();
+
         int GetCount(long userId);
     }
 }
