@@ -30,6 +30,7 @@ namespace PuckevichCore
 
         static PlayerLogin()
         {
+            BassNet.Registration("npogabeq@gmail.com", "2X1425018152222");
             if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
             {
                 Error.HandleBASSError("Failed to initizlize BASS! Error code: ", Bass.BASS_ErrorGetCode());
