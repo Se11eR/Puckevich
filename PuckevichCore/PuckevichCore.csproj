@@ -105,6 +105,7 @@
     <Compile Include="CacheStorage\CacheStorage.cs" />
     <Compile Include="CacheStorage\CacheStream.cs" />
     <Compile Include="CacheStorage\JsonAudioModel.cs" />
+    <Compile Include="CacheStorage\JsonUserModel.cs" />
     <Compile Include="DataVirtualization\IItemsProvider.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Exceptions\AudioAccessException.cs" />

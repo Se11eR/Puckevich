@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using PuckevichCore.Interfaces;
+using VkNet.Model;
 
 namespace PuckevichCore.CacheStorage
 {
@@ -13,12 +14,15 @@ namespace PuckevichCore.CacheStorage
         private readonly IFileStorage __Storage;
         private const string MAP_FILE = "audios.json";
         private const string USERID_FILE = "lastuser.id";
+        private const string AILASTOID_FILE = "aliastoid.json";
         private const string FILE_NAME_PATTERN = "{0}.mp3";
 
         private readonly Dictionary<long, JsonAudioModel> __AudioDict = new Dictionary<long, JsonAudioModel>();
-        private readonly Dictionary<long, SortedList<int, long>> __AudioIdList = new Dictionary<long, SortedList<int, long>>();
-        private readonly JsonSerializer __Serializer;
-        private JsonTextWriter __Writer;
+
+        private readonly Dictionary<long, SortedList<int, long>> __AudioIdList =
+            new Dictionary<long, SortedList<int, long>>();
+
+        private readonly Dictionary<string, JsonUserModel> __AliasMap = new Dictionary<string, JsonUserModel>();
         private string __UserId = null;
 
         public CacheStorage(IFileStorage storage)
@@ -26,13 +30,14 @@ namespace PuckevichCore.CacheStorage
             __Storage = storage;
 
             var s = !__Storage.FileExists(MAP_FILE)
-                           ? __Storage.CreateFile(MAP_FILE)
-                           : __Storage.OpenFile(MAP_FILE, FileMode.Open);
+                ? __Storage.CreateFile(MAP_FILE)
+                : __Storage.OpenFile(MAP_FILE, FileMode.Open);
 
+            var serializer = new JsonSerializer { Formatting = Formatting.Indented };
             using (var file = new JsonTextReader(new StreamReader(s)))
             {
-                __Serializer = new JsonSerializer { Formatting = Formatting.Indented };
-                __AudioDict = __Serializer.Deserialize<Dictionary<long, JsonAudioModel>>(file) ?? new Dictionary<long, JsonAudioModel>();
+                __AudioDict = serializer.Deserialize<Dictionary<long, JsonAudioModel>>(file) ??
+                              new Dictionary<long, JsonAudioModel>();
             }
 
             foreach (var jsonAudioModel in __AudioDict)
@@ -44,9 +49,31 @@ namespace PuckevichCore.CacheStorage
 
             if (__Storage.FileExists(USERID_FILE))
             {
-                using (var file = new StreamReader(__Storage.OpenFile(USERID_FILE, FileMode.Open)))
+                try
                 {
-                    __UserId = file.ReadToEnd();
+                    using (var file = new StreamReader(__Storage.OpenFile(USERID_FILE, FileMode.Open)))
+                    {
+                        __UserId = file.ReadToEnd();
+                    }
+                }
+                catch
+                {
+                    //Ќичего не делать, последнего сохраненного алиаса не будет.
+                }
+            }
+
+            if (__Storage.FileExists(AILASTOID_FILE))
+            {
+                try
+                {
+                    using (var file = new JsonTextReader(new StreamReader(__Storage.OpenFile(AILASTOID_FILE, FileMode.Open))))
+                    {
+                        __AliasMap = serializer.Deserialize<Dictionary<string, JsonUserModel>>(file);
+                    }
+                }
+                catch
+                {
+                    //Ќичего не делать, карты алиасов не будет.
                 }
             }
         }
@@ -113,7 +140,6 @@ namespace PuckevichCore.CacheStorage
         public IAudio GetAt(long userId, int index)
         {
             JsonAudioModel audioModel;
-
             var selectedUserSortedList = __AudioIdList[userId];
             if (__AudioDict.TryGetValue(selectedUserSortedList[selectedUserSortedList.Keys[index]], out audioModel))
             {
@@ -157,6 +183,24 @@ namespace PuckevichCore.CacheStorage
             return __UserId;
         }
 
+        public void StoreUserAlias(string alias, long id, string userFriendlyName)
+        {
+            if (!__AliasMap.ContainsKey(alias))
+                __AliasMap.Add(alias, new JsonUserModel() {FriendlyName = userFriendlyName, UserId = id});
+            else
+                __AliasMap[alias] = new JsonUserModel() {FriendlyName = userFriendlyName, UserId = id};
+        }
+
+        public long? GetIdByAlias(string alias, out string userFriendlyName)
+        {
+            userFriendlyName = null;
+            JsonUserModel model;
+            if (!__AliasMap.TryGetValue(alias, out model))
+                return null;
+            userFriendlyName = model.FriendlyName;
+            return model.UserId;
+        }
+
         public int GetCount(long userId)
         {
             if (!__AudioIdList.ContainsKey(userId))
@@ -169,13 +213,29 @@ namespace PuckevichCore.CacheStorage
         {
             try
             {
-                __Writer = new JsonTextWriter(new StreamWriter(__Storage.OpenFile(MAP_FILE, FileMode.Truncate)));
-                __Serializer.Serialize(__Writer, __AudioDict);
+                var serializer = new JsonSerializer { Formatting = Formatting.Indented };
+                using (
+                    var writer = new JsonTextWriter(new StreamWriter(__Storage.OpenFile(MAP_FILE, FileMode.Truncate))))
+                {
+                    serializer.Serialize(writer, __AudioDict);
+                }
+                var aliasFileExists = __Storage.FileExists(AILASTOID_FILE);
+                using (
+                    var writer =
+                        new JsonTextWriter(
+                            new StreamWriter(__Storage.OpenFile(AILASTOID_FILE,
+                                aliasFileExists ? FileMode.Truncate : FileMode.CreateNew))))
+                {
+                    serializer.Serialize(writer, __AliasMap);
+                }
 
                 if (__UserId != null)
                 {
-                    var exists = __Storage.FileExists(USERID_FILE);
-                    using (var file = new StreamWriter(__Storage.OpenFile(USERID_FILE, exists ? FileMode.Truncate : FileMode.CreateNew)))
+                    var userIdFileExists = __Storage.FileExists(USERID_FILE);
+                    using (
+                        var file =
+                            new StreamWriter(__Storage.OpenFile(USERID_FILE,
+                                userIdFileExists ? FileMode.Truncate : FileMode.CreateNew)))
                     {
                         file.Write(__UserId);
                     }
@@ -183,7 +243,6 @@ namespace PuckevichCore.CacheStorage
             }
             finally
             {
-                __Writer.Close();
                 __Storage.Dispose();
             }
         }

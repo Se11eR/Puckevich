@@ -28,7 +28,9 @@ namespace PuckevichPlayer
     /// </summary>
     public partial class p_Player : UserControl, INotifyPropertyChanged
     {
-        private readonly Action __WhenLoginClickeed;
+        private readonly Action __WhenLoginClicked;
+        private readonly bool __CacheOnly;
+        private readonly Action __WhenCacheLogin;
         private const int PAGE_SIZE = 20;
         private const int PAGE_TIMEOUT = 1000 * 20; //20 sec
 
@@ -41,23 +43,28 @@ namespace PuckevichPlayer
         private Tuple<int, int> __CurrentVisibleListBoxItems;
 
         public p_Player(IItemsProvider<IAudio> vkProvider, IItemsProvider<IAudio> cachedProvider, 
-            Action whenLoginClickeed,
-            string userFirstName)
+            Action whenLoginClicked,
+            string userFirstName,
+            bool cacheOnly)
         {
-            __WhenLoginClickeed = whenLoginClickeed;
-            __VkProvider =
-                new AsyncVirtualizingCollection<AudioModel>(
-                    new AudioModelProviderWrapper(vkProvider, () => __CurrentActive),
-                    PAGE_SIZE,
-                    PAGE_TIMEOUT);
+            __WhenLoginClicked = whenLoginClicked;
+            __CacheOnly = cacheOnly;
+            if (!__CacheOnly)
+                __VkProvider =
+                    new AsyncVirtualizingCollection<AudioModel>(
+                        new AudioModelProviderWrapper(vkProvider, () => __CurrentActive),
+                        PAGE_SIZE,
+                        PAGE_TIMEOUT);
 
             __CachedProvider = new ItemsProviderCollectionWrapper<AudioModel>(
                 new AudioModelProviderWrapper(cachedProvider, () => __CurrentActive));
 
+            if (__CacheOnly)
+                IsCacheMode = true;
+
             InitializeComponent();
             DataContext = this;
-            AudioList = GetModelsList();
-
+            AudioList = GetModelsList(__CacheOnly);
             PlayerTitle = String.Format("{0}'s music", userFirstName);
         }
 
@@ -135,7 +142,9 @@ namespace PuckevichPlayer
             get { return __IsCacheMode; }
             set
             {
-                __IsCacheMode = value;
+                if (!__CacheOnly)
+                    __IsCacheMode = value;
+
                 OnPropertyChanged();
             }
         }
@@ -163,7 +172,7 @@ namespace PuckevichPlayer
 
         private void Login_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            __WhenLoginClickeed();
+            __WhenLoginClicked();
         }
     }
 }

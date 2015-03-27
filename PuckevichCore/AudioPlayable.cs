@@ -241,8 +241,8 @@ namespace PuckevichCore
                     break;
                 case AudioStorageStatus.PartiallyStored:
                 case AudioStorageStatus.NotStored:
-                    if (__Url == null)
-                        throw new PuckevichException("__Url cannot be null for not cached audio!");
+                    if (__Downloader == null || __Url == null)
+                        throw new PuckevichException("__Url or __Downloader cannot be null for not cached audio!");
 
                     __WebDownloaderTask = Task.Run((Action)WebDownloader);
 

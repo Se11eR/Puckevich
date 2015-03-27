@@ -24,6 +24,10 @@ namespace PuckevichCore.Interfaces
 
         string GetLastUserId();
 
+        void StoreUserAlias(string alias, long id, string userFriendlyName);
+
+        long? GetIdByAlias(string alias, out string userFriendlyName);
+
         int GetCount(long userId);
     }
 }

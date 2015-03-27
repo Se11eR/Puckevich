@@ -33,6 +33,7 @@ namespace PuckevichPlayer
         private p_Player __PlayerPage;
         private WedDownloader __Downloader;
         private bool __FirstLogin = true;
+        private bool __CacheLogin;
 
         public MainWindow()
         {
@@ -67,7 +68,17 @@ namespace PuckevichPlayer
             __LoginPage =
                 new p_Login(__Account.CheckCachedVkId(),
                     __FirstLogin,
-                    userId => __Account.Init(userId, __Downloader));
+                    userId =>
+                    {
+                        __Account.Init(userId, __Downloader);
+                        __CacheLogin = false;
+                    },
+                    userId =>
+                    {
+                        __Account.Init(userId);
+                        __CacheLogin = true;
+                    });
+
             __LoginPage.PropertyChanged += LoginOnPropertyChanged;
             Trans.Items.Add(__LoginPage);
 
@@ -81,7 +92,8 @@ namespace PuckevichPlayer
                 __PlayerPage = new p_Player(__Account.AudioInfoProvider,
                     __Account.AudioInfoCacheOnlyProvider,
                     NavigateBack,
-                    __Account.UserFirstName
+                    __Account.UserFirstName,
+                    __CacheLogin
                     );
                 Trans.Items.Add(__PlayerPage);
                 Trans.Transition = new SlideTransition(Direction.RightToLeft)

@@ -12,6 +12,7 @@ using PuckevichCore.Interfaces;
 using Un4seen.Bass;
 using VkNet;
 using VkNet.Enums.Filters;
+using VkNet.Model;
 
 namespace PuckevichCore
 {
@@ -62,6 +63,22 @@ namespace PuckevichCore
             InitInternal(UNIVERSAL_EMAIL, UNIVERSAL_PASSWORD, downloader, userId);
         }
 
+        public void Init(string userId)
+        {
+            PlayingStateChangedEventHandler handler;
+            var factory = GetFactory(null, out handler);
+
+            string friendlyName;
+            long id = __AudioStorage.GetIdByAlias(userId, out friendlyName) ?? -1;
+            if (id == -1)
+                throw new AuthIDException("No such alias stored! Login Online first!");
+
+            UserFirstName = friendlyName;
+            __InfoCacheOnlyProvider = new AudioInfoCacheOnlyProvider(factory, __AudioStorage, id, handler);
+            __AudioStorage.StoreLastUserId(userId);
+            __IsInit = true;
+        }
+
         public string CheckCachedVkId()
         {
             return __AudioStorage.GetLastUserId();
@@ -84,6 +101,8 @@ namespace PuckevichCore
             UserFirstName = api.Users.Get(id).FirstName;
             InitProviders(downloader, api, id);
             __AudioStorage.StoreLastUserId(userId);
+            if (userId != null)
+                __AudioStorage.StoreUserAlias(userId, id, UserFirstName);
             __IsInit = true;
         }
 
@@ -120,17 +139,8 @@ namespace PuckevichCore
 
         private void InitProviders(IWebDownloader downloader, VkApi api, long user)
         {
-            var factory = new AudioInfo.AudioInfoFactory(__AudioStorage, downloader);
-            PlayingStateChangedEventHandler handler = playable =>
-            {
-                if (__IsDisposingNow == 0)
-                {
-                    if (playable.State == PlayingState.Playing)
-                        __OpenedChannels.Add(playable);
-                    else if (playable.State == PlayingState.Stopped)
-                        __OpenedChannels.Remove(playable);
-                }
-            };
+            PlayingStateChangedEventHandler handler;
+            var factory = GetFactory(downloader, out handler);
 
             __InfoProvider =
                 new AudioInfoProvider((userId, count, offset) => api.Audio.Get(userId, null, null, count, offset),
@@ -140,6 +150,22 @@ namespace PuckevichCore
                     handler);
 
             __InfoCacheOnlyProvider = new AudioInfoCacheOnlyProvider(factory, __AudioStorage, user, handler);
+        }
+
+        private AudioInfo.AudioInfoFactory GetFactory(IWebDownloader downloader, out PlayingStateChangedEventHandler handler)
+        {
+            var factory = new AudioInfo.AudioInfoFactory(__AudioStorage, downloader);
+            handler = playable =>
+            {
+                if (__IsDisposingNow == 0)
+                {
+                    if (playable.State == PlayingState.Playing)
+                        __OpenedChannels.Add(playable);
+                    else if (playable.State == PlayingState.Stopped)
+                        __OpenedChannels.Remove(playable);
+                }
+            };
+            return factory;
         }
 
         public string UserFirstName { get; private set; }

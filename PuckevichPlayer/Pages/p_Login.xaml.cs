@@ -23,21 +23,23 @@ namespace PuckevichPlayer.Pages
     /// </summary>
     public partial class p_Login : UserControl, INotifyPropertyChanged
     {
-        private readonly Action<string> __LoginAction;
+        private readonly Action<string> __OnlineLogin;
+        private readonly Action<string> __CacheLogin;
         private bool __LoggingIn;
         private bool __LoggedIn;
         private string __ErrorMessage;
 
-        public p_Login(string lastId, bool immediateLogin, Action<string> loginAction)
+        public p_Login(string lastId, bool immediateLogin, Action<string> onlineLogin, Action<string> cacheLogin)
         {
             InitializeComponent();
             DataContext = this;
 
             UserVkId = lastId;
-            __LoginAction = loginAction;
+            __OnlineLogin = onlineLogin;
+            __CacheLogin = cacheLogin;
 
             if (lastId != null && immediateLogin)
-                ButtonBase_OnClick(null, null);
+                OnlineLogin_Click(null, null);
         }
 
         public bool LoggingIn
@@ -72,12 +74,36 @@ namespace PuckevichPlayer.Pages
             }
         }
 
-        private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        private async void OnlineLogin_Click(object sender, RoutedEventArgs e)
         {
             LoggingIn = true;
             try
             {
-                await Task.Run(() => __LoginAction(UserVkId));
+                await Task.Run(() => __OnlineLogin(UserVkId));
+
+                ErrorMessage = null;
+                LoggedIn = true;
+            }
+            catch (AuthIDException)
+            {
+                ErrorMessage = "No such page in cache. You may need to login online first.";
+            }
+            catch (AuthException)
+            {
+                ErrorMessage = "Error occured.";
+            }
+            finally
+            {
+                LoggingIn = false;
+            }
+        }
+
+        private async void CacheLogin_Click(object sender, RoutedEventArgs e)
+        {
+            LoggingIn = true;
+            try
+            {
+                await Task.Run(() => __CacheLogin(UserVkId));
 
                 ErrorMessage = null;
                 LoggedIn = true;
@@ -103,5 +129,7 @@ namespace PuckevichPlayer.Pages
             var handler = PropertyChanged;
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        
     }
 }
